@@ -30,9 +30,9 @@
             --bg-color: #050505;
             
             /* Glass Panel */
-            --card-bg: rgba(20, 20, 20, 0.6); /* Mais translúcido para ver as luzes */
-            --card-border: rgba(255, 255, 255, 0.1);
-            --card-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            --card-bg: rgba(20, 20, 20, 0.7); 
+            --card-border: rgba(255, 255, 255, 0.08);
+            --card-shadow: 0 4px 24px rgba(0, 0, 0, 0.2); /* Sombra estática mais leve */
             
             /* Typography */
             --text-primary: #ffffff;
@@ -50,16 +50,19 @@
             --file-btn-text: #fff;
             
             /* Navbar */
-            --nav-bg: rgba(5, 5, 5, 0.7);
+            --nav-bg: rgba(5, 5, 5, 0.85); /* Mais opaco para performance */
+            
+            /* Grids */
+            --grid-color: rgba(255, 255, 255, 0.03);
         }
 
         /* Variáveis do Modo Claro */
         body.light-mode {
             --bg-color: #f8f9fa;
             
-            --card-bg: rgba(255, 255, 255, 0.85);
-            --card-border: rgba(0, 0, 0, 0.08);
-            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --card-border: rgba(0, 0, 0, 0.06);
+            --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
             
             --text-primary: #18181b;
             --text-secondary: #71717a;
@@ -73,7 +76,8 @@
             --file-btn-bg: rgba(0, 0, 0, 0.05);
             --file-btn-text: #18181b;
             
-            --nav-bg: rgba(255, 255, 255, 0.8);
+            --nav-bg: rgba(255, 255, 255, 0.9);
+            --grid-color: rgba(0, 0, 0, 0.03);
         }
 
         body {
@@ -83,58 +87,23 @@
             min-height: 100vh;
             margin: 0;
             overflow-x: hidden;
-            transition: background-color 0.5s ease;
+            transition: background-color 0.3s ease;
+            
+            /* PERFORMANCE FIX: Static Background Gradients instead of animated divs */
+            background-image: 
+                /* Luz Laranja (Topo Esquerda) */
+                radial-gradient(circle at 15% 20%, rgba(255, 136, 0, 0.06) 0%, transparent 40%),
+                /* Luz Roxa (Baixo Direita) - Contraste sutil */
+                radial-gradient(circle at 85% 80%, rgba(100, 50, 255, 0.06) 0%, transparent 40%),
+                /* Grid Pattern */
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            
+            background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+            background-attachment: fixed; /* Importante: Fundo não rola, economiza repaint */
         }
 
-        /* Ambient Lights (Background Orbs) - OTIMIZADO */
-        .ambient-light {
-            position: fixed;
-            border-radius: 50%;
-            /* Reduzido blur para performance, mas mantendo visual */
-            filter: blur(80px); 
-            z-index: -1;
-            opacity: 0.6;
-            /* Will-change avisa o browser para otimizar */
-            will-change: transform, opacity;
-            /* TranslateZ força GPU acceleration */
-            transform: translateZ(0); 
-            animation: float 15s ease-in-out infinite; /* Animação mais lenta para pesar menos */
-            pointer-events: none; /* Garante que não interfere no scroll/clique */
-        }
-        
-        /* Light 1: Woca Orange Top Left */
-        .light-1 {
-            top: -10%;
-            left: -10%;
-            width: 50vw;
-            height: 50vw;
-            background: radial-gradient(circle, var(--woca-orange-glow) 0%, transparent 70%);
-            animation-delay: 0s;
-        }
-        
-        /* Light 2: Deep Purple/Secondary Bottom Right */
-        .light-2 {
-            bottom: -20%;
-            right: -10%;
-            width: 60vw;
-            height: 60vw;
-            background: radial-gradient(circle, rgba(100, 50, 255, 0.15) 0%, transparent 70%);
-            animation-delay: -5s;
-        }
-
-        /* Hide ambient lights in Light Mode for cleaner look */
-        body.light-mode .ambient-light {
-            opacity: 0;
-            display: none; /* Remove do render tree no modo claro */
-        }
-
-        @keyframes float {
-            0% { transform: translate3d(0, 0, 0) scale(1); }
-            50% { transform: translate3d(20px, 30px, 0) scale(1.05); } /* Scale menor */
-            100% { transform: translate3d(0, 0, 0) scale(1); }
-        }
-
-        /* Navbar Glassmorphism - OTIMIZADO */
+        /* Navbar Glassmorphism */
         nav.glass-nav {
             position: fixed;
             top: 0;
@@ -142,44 +111,36 @@
             width: 100%;
             z-index: 50;
             background: var(--nav-bg);
-            /* Otimização de glass */
-            -webkit-backdrop-filter: blur(10px);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--table-border);
             transition: background 0.3s ease;
-            transform: translateZ(0); /* GPU */
         }
 
-        /* Main Container padding to account for fixed nav */
+        /* Main Container padding */
         main {
             padding-top: 100px;
             padding-bottom: 60px;
         }
 
-        /* Cards with Hover Effect - OTIMIZADO */
+        /* Cards */
         .glass-panel {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             box-shadow: var(--card-shadow);
-            /* Backdrop filter em muitos elementos causa lag no scroll. 
-               Reduzi ou removi dos cards internos se houver sobreposição, 
-               mas aqui mantive pois é essencial para o visual. 
-               Adicionei will-change no hover. */
-            -webkit-backdrop-filter: blur(12px);
-            backdrop-filter: blur(12px);
-            border-radius: 16px;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
-            transform: translateZ(0); /* GPU */
+            backdrop-filter: blur(8px); /* Blur reduzido para performance */
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 12px;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+            /* Removido will-change e animações pesadas no hover */
         }
 
         .glass-panel:hover {
-            transform: translateY(-4px) translateZ(0);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-            border-color: rgba(255, 136, 0, 0.3); 
+            /* Efeito hover mais sutil e leve */
+            border-color: rgba(255, 136, 0, 0.25); 
         }
         
         body.light-mode .glass-panel:hover {
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
             border-color: rgba(0, 0, 0, 0.15);
         }
 
@@ -188,12 +149,12 @@
             background: var(--input-bg);
             border: 1px solid var(--card-border);
             color: var(--text-primary);
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            transition: border-color 0.2s ease;
         }
         .tech-input:focus {
             border-color: var(--woca-orange);
             outline: none;
-            box-shadow: 0 0 15px var(--woca-orange-glow);
+            box-shadow: 0 0 0 2px rgba(255, 136, 0, 0.1); /* Shadow simples é mais leve que glow */
         }
         .tech-input::file-selector-button {
             margin-right: 1rem;
@@ -212,32 +173,30 @@
             color: #fff;
         }
 
+        /* Calendário Icon Light Mode Fix */
+        .tech-input::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+            opacity: 0.6;
+        }
+        body.light-mode .tech-input::-webkit-calendar-picker-indicator {
+            filter: invert(0);
+        }
+
+        .accent-text {
+            color: var(--woca-orange);
+        }
+
         /* Buttons */
         .accent-btn {
             background: var(--woca-orange);
             color: white; 
             font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: opacity 0.2s;
             border: none;
-            position: relative;
-            overflow: hidden;
-            transform: translateZ(0);
-        }
-        .accent-btn::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(255,255,255,0.2), transparent);
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-        }
-        .accent-btn:hover::after {
-            opacity: 1;
         }
         .accent-btn:hover {
-            transform: translateY(-1px) translateZ(0);
-            box-shadow: 0 0 25px var(--woca-orange-glow);
+            opacity: 0.9; /* Opacidade é mais performático que box-shadow glow */
         }
 
         /* Theme Toggle */
@@ -268,7 +227,7 @@
             background: transparent; 
         }
         ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2); 
+            background: rgba(128, 128, 128, 0.3); 
             border-radius: 3px;
         }
         ::-webkit-scrollbar-thumb:hover {
@@ -336,8 +295,8 @@
         }
         
         /* Utilities */
-        .text-green-400 { color: #22c55e; } /* Emerald 500 equivalent usually */
-        body:not(.light-mode) .text-green-400 { color: #4ade80; } /* Lighter green for dark mode */
+        .text-green-400 { color: #22c55e; }
+        body:not(.light-mode) .text-green-400 { color: #4ade80; }
         
         .logo-img {
             height: 32px;
@@ -347,10 +306,6 @@
     </style>
 </head>
 <body class="px-6 md:px-10">
-
-    <!-- Ambient Lights (Background) -->
-    <div class="ambient-light light-1"></div>
-    <div class="ambient-light light-2"></div>
 
     <!-- Fixed Navbar -->
     <nav class="glass-nav px-6 md:px-10 py-4">
