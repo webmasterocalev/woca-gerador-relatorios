@@ -32,7 +32,7 @@
             /* Glass Panel */
             --card-bg: rgba(20, 20, 20, 0.7); 
             --card-border: rgba(255, 255, 255, 0.08);
-            --card-shadow: 0 4px 24px rgba(0, 0, 0, 0.2); /* Sombra estática mais leve */
+            --card-shadow: 0 4px 24px rgba(0, 0, 0, 0.2); 
             
             /* Typography */
             --text-primary: #ffffff;
@@ -50,10 +50,15 @@
             --file-btn-text: #fff;
             
             /* Navbar */
-            --nav-bg: rgba(5, 5, 5, 0.85); /* Mais opaco para performance */
+            --nav-bg: rgba(5, 5, 5, 0.85); 
             
             /* Grids */
             --grid-color: rgba(255, 255, 255, 0.03);
+            
+            /* Tabs */
+            --tab-inactive: rgba(255, 255, 255, 0.05);
+            --tab-active-bg: rgba(255, 136, 0, 0.15);
+            --tab-active-text: #FF8800;
         }
 
         /* Variáveis do Modo Claro */
@@ -78,6 +83,9 @@
             
             --nav-bg: rgba(255, 255, 255, 0.9);
             --grid-color: rgba(0, 0, 0, 0.03);
+            
+            --tab-inactive: rgba(0, 0, 0, 0.05);
+            --tab-active-bg: rgba(255, 136, 0, 0.1);
         }
 
         body {
@@ -89,18 +97,14 @@
             overflow-x: hidden;
             transition: background-color 0.3s ease;
             
-            /* PERFORMANCE FIX: Static Background Gradients instead of animated divs */
             background-image: 
-                /* Luz Laranja (Topo Esquerda) */
                 radial-gradient(circle at 15% 20%, rgba(255, 136, 0, 0.06) 0%, transparent 40%),
-                /* Luz Roxa (Baixo Direita) - Contraste sutil */
                 radial-gradient(circle at 85% 80%, rgba(100, 50, 255, 0.06) 0%, transparent 40%),
-                /* Grid Pattern */
                 linear-gradient(var(--grid-color) 1px, transparent 1px),
                 linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
             
             background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
-            background-attachment: fixed; /* Importante: Fundo não rola, economiza repaint */
+            background-attachment: fixed; 
         }
 
         /* Navbar Glassmorphism */
@@ -117,7 +121,6 @@
             transition: background 0.3s ease;
         }
 
-        /* Main Container padding */
         main {
             padding-top: 100px;
             padding-bottom: 60px;
@@ -128,15 +131,13 @@
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             box-shadow: var(--card-shadow);
-            backdrop-filter: blur(8px); /* Blur reduzido para performance */
+            backdrop-filter: blur(8px); 
             -webkit-backdrop-filter: blur(8px);
             border-radius: 12px;
             transition: transform 0.2s ease, border-color 0.2s ease;
-            /* Removido will-change e animações pesadas no hover */
         }
 
         .glass-panel:hover {
-            /* Efeito hover mais sutil e leve */
             border-color: rgba(255, 136, 0, 0.25); 
         }
         
@@ -154,7 +155,7 @@
         .tech-input:focus {
             border-color: var(--woca-orange);
             outline: none;
-            box-shadow: 0 0 0 2px rgba(255, 136, 0, 0.1); /* Shadow simples é mais leve que glow */
+            box-shadow: 0 0 0 2px rgba(255, 136, 0, 0.1); 
         }
         .tech-input::file-selector-button {
             margin-right: 1rem;
@@ -173,7 +174,6 @@
             color: #fff;
         }
 
-        /* Calendário Icon Light Mode Fix */
         .tech-input::-webkit-calendar-picker-indicator {
             filter: invert(1);
             cursor: pointer;
@@ -196,7 +196,33 @@
             border: none;
         }
         .accent-btn:hover {
-            opacity: 0.9; /* Opacidade é mais performático que box-shadow glow */
+            opacity: 0.9; 
+        }
+
+        /* Tab Buttons */
+        .tab-btn {
+            background: var(--tab-inactive);
+            color: var(--text-secondary);
+            border: 1px solid var(--card-border);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tab-btn:hover {
+            border-color: var(--woca-orange);
+            color: var(--text-primary);
+        }
+        .tab-btn.active {
+            background: var(--tab-active-bg);
+            color: var(--tab-active-text);
+            border-color: var(--woca-orange);
+            box-shadow: 0 0 15px rgba(255, 136, 0, 0.15);
         }
 
         /* Theme Toggle */
@@ -303,6 +329,19 @@
             width: auto;
             margin-right: 12px;
         }
+
+        /* Tab Content Transitions */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .tab-content.active {
+            display: block; /* Changed from grid to block to allow inner grids */
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="px-6 md:px-10">
@@ -320,7 +359,6 @@
             </div>
             
             <div class="flex gap-4 items-center">
-                <!-- Theme Toggle Button -->
                 <button onclick="toggleTheme()" class="theme-toggle" title="Alternar Tema">
                     <i data-lucide="sun" id="themeIcon" class="w-5 h-5"></i>
                 </button>
@@ -330,165 +368,199 @@
 
     <!-- Main Content -->
     <main class="max-w-[1600px] mx-auto">
-        <!-- Controls Section -->
-        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10">
-            
-            <!-- File Upload Zone -->
-            <div class="lg:col-span-8 glass-panel p-8 relative overflow-hidden group">
-                <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <i data-lucide="upload-cloud" class="w-32 h-32" style="color: var(--text-primary);"></i>
-                </div>
-                
-                <h2 class="text-lg font-medium mb-6 flex items-center gap-2" style="color: var(--text-primary);">
-                    <i data-lucide="database" class="w-5 h-5 accent-text"></i>
-                    Input de Dados (CSV)
-                </h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-xs uppercase tracking-wide mb-2 opacity-70" style="color: var(--text-primary);">Transações</label>
-                        <input type="file" id="fileTransacoes" accept=".csv" class="tech-input w-full rounded-lg p-3 text-sm">
-                        <p id="statusTransacoes" class="text-xs mt-2" style="color: var(--text-secondary);">Aguardando arquivo...</p>
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase tracking-wide mb-2 opacity-70" style="color: var(--text-primary);">Usuários</label>
-                        <input type="file" id="fileUsuarios" accept=".csv" class="tech-input w-full rounded-lg p-3 text-sm">
-                        <p id="statusUsuarios" class="text-xs mt-2" style="color: var(--text-secondary);">Aguardando arquivo...</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Date Control -->
-            <div class="lg:col-span-4 glass-panel p-8 flex flex-col justify-between">
-                <div>
-                    <h2 class="text-lg font-medium mb-6 flex items-center gap-2" style="color: var(--text-primary);">
-                        <i data-lucide="calendar-clock" class="w-5 h-5 accent-text"></i>
-                        Período de Análise
-                    </h2>
-                    <label class="block text-xs uppercase tracking-wide mb-2 opacity-70" style="color: var(--text-primary);">Domingo (Início)</label>
-                    <input type="date" id="startDate" class="tech-input w-full rounded-lg p-3 mb-2" style="color: var(--text-primary);">
-                    <p id="weekRangeDisplay" class="text-xs accent-text h-4 font-mono"></p>
-                </div>
-                
-                <button onclick="processData()" class="accent-btn w-full rounded-lg py-4 mt-4 flex justify-center items-center gap-2">
-                    <i data-lucide="cpu" class="w-4 h-4"></i>
-                    PROCESSAR DADOS
+        
+        <!-- Top Level Tab Navigation -->
+        <div class="flex justify-center mb-8">
+            <div class="flex gap-4">
+                <button class="tab-btn active" onclick="switchTab('aquisicao')">
+                    <i data-lucide="users" class="w-5 h-5"></i> Aquisição
+                </button>
+                <button class="tab-btn" onclick="switchTab('email')">
+                    <i data-lucide="mail" class="w-5 h-5"></i> E-mail Marketing
                 </button>
             </div>
-        </section>
+        </div>
 
-        <!-- Results Grid (Bento) -->
-        <div id="resultsArea" class="hidden grid-cols-1 xl:grid-cols-2 gap-6">
-            
-            <!-- ROW 1 -->
-            <!-- Card: Validados -->
-            <div class="glass-panel p-0 flex flex-col h-auto">
-                <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
-                    <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="check-circle" class="w-4 h-4 text-green-400"></i> Validados (Tendência 8 Semanas)</h3>
-                    <button onclick="copyTable('tableValidados')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
-                </div>
-                <div class="p-6 overflow-x-auto custom-scroll">
-                    <div id="renderValidados"></div>
-                </div>
-            </div>
-
-            <!-- Card: Aquisição Geral -->
-            <div class="glass-panel p-0 flex flex-col h-auto">
-                <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
-                    <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="trending-up" class="w-4 h-4 accent-text"></i> Aquisição (Medium)</h3>
-                    <button onclick="copyTable('tableAquisicao')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
-                </div>
-                <div class="p-6 overflow-x-auto custom-scroll">
-                    <div id="renderAquisicao"></div>
-                </div>
-            </div>
-
-            <!-- ROW 2 -->
-            <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
-                <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
-                    <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="user-check" class="w-4 h-4 text-green-400"></i> Conversão de Leads em Clientes (Detalhado)</h3>
-                    <button onclick="copyTable('tableConversao')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar Tabela</button>
-                </div>
-                <div class="p-6 overflow-x-auto custom-scroll">
-                    <div id="renderConversao"></div>
-                </div>
-            </div>
-
-            <!-- ROW 3 -->
-            <!-- Distribuicao Vendas -->
-            <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
-                <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
-                    <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="shopping-cart" class="w-4 h-4 text-green-400"></i> Distribuição de Vendas (Novos Clientes)</h3>
-                    <button onclick="copyTable('tableDistVendas')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
-                </div>
-                <div class="p-6 overflow-x-auto custom-scroll">
-                    <div id="renderDistVendas"></div>
-                </div>
-            </div>
-
-            <!-- Card: Distribuição Planos -->
-            <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
-                <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
-                    <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="credit-card" class="w-4 h-4 text-purple-400"></i> Distribuição Planos (Validados)</h3>
-                    <button onclick="copyTable('tablePlanos')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
-                </div>
-                <div class="p-6 overflow-x-auto custom-scroll">
-                    <div id="renderPlanos"></div>
-                </div>
-            </div>
-
-            <!-- ROW 4 -->
-            <!-- Card: Distribuição Profissões -->
-            <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
-                <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
-                    <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="briefcase" class="w-4 h-4 text-blue-400"></i> Por Profissão (Dia)</h3>
-                    <button onclick="copyTable('tableProfissao')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
-                </div>
-                <div class="p-6 overflow-x-auto custom-scroll">
-                    <div id="renderProfissao"></div>
-                </div>
-            </div>
-
-            <!-- Card: Distribuição Campanhas -->
-            <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
-                <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
-                    <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="megaphone" class="w-4 h-4 text-pink-400"></i> Por Campanha (Dia)</h3>
-                    <button onclick="copyTable('tableCampanha')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
-                </div>
-                <div class="p-6 overflow-x-auto custom-scroll">
-                    <div id="renderCampanha"></div>
-                </div>
-            </div>
-
-            <!-- ROW 5 -->
-            <!-- Card: Histórico Mensal -->
-            <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
-                <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
-                    <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="calendar-days" class="w-4 h-4 accent-text"></i> Conversão Acumulada do Mês</h3>
-                    <button onclick="copyTable('tableHistorico')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
-                </div>
-                <div class="p-6 overflow-x-auto custom-scroll">
-                    <div id="renderHistorico"></div>
-                </div>
-            </div>
-
-            <!-- Card: Velocidade de Conversão (Cohort) -->
-            <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
-                <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
-                    <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="timer" class="w-4 h-4 text-cyan-400"></i> Velocidade de Conversão (Dias)</h3>
-                    <div class="flex gap-2">
-                        <button onclick="downloadImage('tableVelocidade', 'Woca_Cohort.png')" class="download-btn text-xs px-3 py-1.5 rounded flex items-center gap-1 transition-all font-medium">
-                            <i data-lucide="image-down" class="w-3 h-3"></i> Baixar Imagem
-                        </button>
-                        <button onclick="copyTable('tableVelocidade')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
+        <!-- TAB 1: Aquisição Content -->
+        <div id="tab-aquisicao" class="tab-content active">
+            <!-- Controls Section (Acquisition Specific) -->
+            <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10">
+                <div class="lg:col-span-8 glass-panel p-8 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <i data-lucide="upload-cloud" class="w-32 h-32" style="color: var(--text-primary);"></i>
+                    </div>
+                    <h2 class="text-lg font-medium mb-6 flex items-center gap-2" style="color: var(--text-primary);">
+                        <i data-lucide="database" class="w-5 h-5 accent-text"></i> Input de Dados (Aquisição)
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs uppercase tracking-wide mb-2 opacity-70" style="color: var(--text-primary);">Transações (CSV)</label>
+                            <input type="file" id="fileTransacoes" accept=".csv" class="tech-input w-full rounded-lg p-3 text-sm">
+                            <p id="statusTransacoes" class="text-xs mt-2" style="color: var(--text-secondary);">Aguardando arquivo...</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase tracking-wide mb-2 opacity-70" style="color: var(--text-primary);">Usuários (CSV)</label>
+                            <input type="file" id="fileUsuarios" accept=".csv" class="tech-input w-full rounded-lg p-3 text-sm">
+                            <p id="statusUsuarios" class="text-xs mt-2" style="color: var(--text-secondary);">Aguardando arquivo...</p>
+                        </div>
                     </div>
                 </div>
-                <div class="p-6 overflow-x-auto custom-scroll" id="containerVelocidade">
-                    <div id="renderVelocidade"></div>
+                <!-- Shared Date Control logic, but visually here -->
+                <div class="lg:col-span-4 glass-panel p-8 flex flex-col justify-between">
+                    <div>
+                        <h2 class="text-lg font-medium mb-6 flex items-center gap-2" style="color: var(--text-primary);">
+                            <i data-lucide="calendar-clock" class="w-5 h-5 accent-text"></i> Período de Análise
+                        </h2>
+                        <label class="block text-xs uppercase tracking-wide mb-2 opacity-70" style="color: var(--text-primary);">Domingo (Início)</label>
+                        <input type="date" id="startDateAcq" class="tech-input w-full rounded-lg p-3 mb-2" style="color: var(--text-primary);">
+                        <p id="weekRangeDisplayAcq" class="text-xs accent-text h-4 font-mono"></p>
+                    </div>
+                    <button onclick="processData('aquisicao')" class="accent-btn w-full rounded-lg py-4 mt-4 flex justify-center items-center gap-2">
+                        <i data-lucide="cpu" class="w-4 h-4"></i> PROCESSAR AQUISIÇÃO
+                    </button>
+                </div>
+            </section>
+
+            <!-- Results Grid (Acquisition) -->
+            <div id="resultsAreaAcq" class="hidden grid-cols-1 xl:grid-cols-2 gap-6">
+                <!-- ROW 1 -->
+                <div class="glass-panel p-0 flex flex-col h-auto">
+                    <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
+                        <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="check-circle" class="w-4 h-4 text-green-400"></i> Validados (Últimas 8 Semanas)</h3>
+                        <button onclick="copyTable('tableValidados')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
+                    </div>
+                    <div class="p-6 overflow-x-auto custom-scroll"><div id="renderValidados"></div></div>
+                </div>
+                <div class="glass-panel p-0 flex flex-col h-auto">
+                    <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
+                        <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="trending-up" class="w-4 h-4 accent-text"></i> Aquisição (Medium)</h3>
+                        <button onclick="copyTable('tableAquisicao')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
+                    </div>
+                    <div class="p-6 overflow-x-auto custom-scroll"><div id="renderAquisicao"></div></div>
+                </div>
+                
+                <!-- ROW 2 -->
+                <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
+                    <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
+                        <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="user-check" class="w-4 h-4 text-green-400"></i> Conversão de Leads em Clientes</h3>
+                        <button onclick="copyTable('tableConversao')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar Tabela</button>
+                    </div>
+                    <div class="p-6 overflow-x-auto custom-scroll"><div id="renderConversao"></div></div>
+                </div>
+
+                <!-- ROW 3 -->
+                <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
+                    <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
+                        <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="shopping-cart" class="w-4 h-4 text-green-400"></i> Distribuição de Vendas (Novos Clientes)</h3>
+                        <button onclick="copyTable('tableDistVendas')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
+                    </div>
+                    <div class="p-6 overflow-x-auto custom-scroll"><div id="renderDistVendas"></div></div>
+                </div>
+                <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
+                    <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
+                        <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="credit-card" class="w-4 h-4 text-purple-400"></i> Distribuição Planos (Validados)</h3>
+                        <button onclick="copyTable('tablePlanos')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
+                    </div>
+                    <div class="p-6 overflow-x-auto custom-scroll"><div id="renderPlanos"></div></div>
+                </div>
+
+                <!-- ROW 4 -->
+                <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
+                    <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
+                        <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="briefcase" class="w-4 h-4 text-blue-400"></i> Por Profissão (Dia)</h3>
+                        <button onclick="copyTable('tableProfissao')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
+                    </div>
+                    <div class="p-6 overflow-x-auto custom-scroll"><div id="renderProfissao"></div></div>
+                </div>
+                <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
+                    <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
+                        <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="megaphone" class="w-4 h-4 text-pink-400"></i> Por Campanha (Dia)</h3>
+                        <button onclick="copyTable('tableCampanha')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
+                    </div>
+                    <div class="p-6 overflow-x-auto custom-scroll"><div id="renderCampanha"></div></div>
+                </div>
+
+                <!-- ROW 5 -->
+                <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
+                    <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
+                        <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="calendar-days" class="w-4 h-4 accent-text"></i> Conversão Acumulada do Mês</h3>
+                        <button onclick="copyTable('tableHistorico')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
+                    </div>
+                    <div class="p-6 overflow-x-auto custom-scroll"><div id="renderHistorico"></div></div>
+                </div>
+                <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
+                    <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
+                        <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="timer" class="w-4 h-4 text-cyan-400"></i> Velocidade de Conversão (Dias)</h3>
+                        <div class="flex gap-2">
+                            <button onclick="downloadImage('tableVelocidade', 'Woca_Cohort.png')" class="download-btn text-xs px-3 py-1.5 rounded flex items-center gap-1 transition-all font-medium">
+                                <i data-lucide="image-down" class="w-3 h-3"></i> Baixar Imagem
+                            </button>
+                            <button onclick="copyTable('tableVelocidade')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
+                        </div>
+                    </div>
+                    <div class="p-6 overflow-x-auto custom-scroll" id="containerVelocidade"><div id="renderVelocidade"></div></div>
                 </div>
             </div>
-            
         </div>
+
+        <!-- TAB 2: Email Marketing Content -->
+        <div id="tab-email" class="tab-content hidden">
+            <!-- Controls Section (Email Specific) -->
+            <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10">
+                <div class="lg:col-span-8 glass-panel p-8 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <i data-lucide="mail" class="w-32 h-32" style="color: var(--text-primary);"></i>
+                    </div>
+                    <h2 class="text-lg font-medium mb-6 flex items-center gap-2" style="color: var(--text-primary);">
+                        <i data-lucide="database" class="w-5 h-5 accent-text"></i> Input de Dados (E-mail)
+                    </h2>
+                    <div class="grid grid-cols-1">
+                        <div>
+                            <label class="block text-xs uppercase tracking-wide mb-2 opacity-70 accent-text">CSV Brevo (Campanhas)</label>
+                            <input type="file" id="fileEmails" accept=".csv" class="tech-input w-full rounded-lg p-3 text-sm" style="border-color: var(--woca-orange);">
+                            <p id="statusEmails" class="text-xs mt-2" style="color: var(--text-secondary);">Aguardando arquivo...</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Date Control (Email Specific but synced logic) -->
+                <div class="lg:col-span-4 glass-panel p-8 flex flex-col justify-between">
+                    <div>
+                        <h2 class="text-lg font-medium mb-6 flex items-center gap-2" style="color: var(--text-primary);">
+                            <i data-lucide="calendar-clock" class="w-5 h-5 accent-text"></i> Período de Análise
+                        </h2>
+                        <label class="block text-xs uppercase tracking-wide mb-2 opacity-70" style="color: var(--text-primary);">Domingo (Início)</label>
+                        <input type="date" id="startDateEmail" class="tech-input w-full rounded-lg p-3 mb-2" style="color: var(--text-primary);">
+                        <p id="weekRangeDisplayEmail" class="text-xs accent-text h-4 font-mono"></p>
+                    </div>
+                    <button onclick="processData('email')" class="accent-btn w-full rounded-lg py-4 mt-4 flex justify-center items-center gap-2">
+                        <i data-lucide="mail-check" class="w-4 h-4"></i> PROCESSAR E-MAILS
+                    </button>
+                </div>
+            </section>
+
+            <!-- Results Grid (Email) -->
+            <div id="resultsAreaEmail" class="hidden grid-cols-1 gap-6">
+                
+                <!-- NEW CARD: Resumo Semanal -->
+                <div class="glass-panel p-0 flex flex-col h-auto">
+                    <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
+                        <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="bar-chart-3" class="w-4 h-4 accent-text"></i> Resumo Semanal de Performance (Mês)</h3>
+                        <button onclick="copyTable('tableEmailSemanal')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar Tabela</button>
+                    </div>
+                    <div class="p-6 overflow-x-auto custom-scroll"><div id="renderEmailSemanal"></div></div>
+                </div>
+
+                <!-- Existing Card: Campanhas de E-mail -->
+                <div class="glass-panel p-0 flex flex-col h-auto">
+                    <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
+                        <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="mail" class="w-4 h-4 accent-text"></i> Ações de E-mail da Semana (Brevo)</h3>
+                        <button onclick="copyTable('tableEmails')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar Tabela</button>
+                    </div>
+                    <div class="p-6 overflow-x-auto custom-scroll"><div id="renderEmails"></div></div>
+                </div>
+            </div>
+        </div>
+        
     </main>
 
     <!-- Script Logic -->
@@ -497,70 +569,172 @@
         
         let rawTransacoes = [];
         let rawUsuarios = [];
+        let rawEmails = [];
 
-        // Theme Toggle Logic
         function toggleTheme() {
             const body = document.body;
             const icon = document.getElementById('themeIcon');
-            
             body.classList.toggle('light-mode');
             
-            // Re-render if data exists to apply theme specific logic
-            if (rawTransacoes.length > 0 && rawUsuarios.length > 0 && document.getElementById('startDate').value) {
-                processData();
-            }
-            
+            // Update Icon
             if (body.classList.contains('light-mode')) {
                 icon.setAttribute('data-lucide', 'moon');
             } else {
                 icon.setAttribute('data-lucide', 'sun');
             }
             lucide.createIcons();
+
+            // Determine active mode based on visible tab
+            let mode = 'aquisicao';
+            const emailTab = document.getElementById('tab-email');
+            if (emailTab && !emailTab.classList.contains('hidden') && emailTab.classList.contains('active')) {
+                mode = 'email';
+            }
+
+            // Check requirements and re-process
+            if (mode === 'aquisicao') {
+                const hasDate = document.getElementById('startDateAcq').value;
+                if (rawTransacoes.length > 0 && rawUsuarios.length > 0 && hasDate) {
+                    processData('aquisicao');
+                }
+            } else {
+                const hasDate = document.getElementById('startDateEmail').value;
+                if (rawEmails.length > 0 && hasDate) {
+                    processData('email');
+                }
+            }
         }
 
-        // DOM Elements
-        const fileTransacoes = document.getElementById('fileTransacoes');
-        const fileUsuarios = document.getElementById('fileUsuarios');
-        const startDateInput = document.getElementById('startDate');
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            const buttons = document.querySelectorAll('.tab-btn');
+            if (tabName === 'aquisicao') buttons[0].classList.add('active');
+            if (tabName === 'email') buttons[1].classList.add('active');
+        }
+
+        // --- Event Listeners ---
         
-        fileTransacoes.addEventListener('change', (e) => {
+        // Acquisition Inputs
+        document.getElementById('fileTransacoes').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if(!file) return;
-            Papa.parse(file, {
-                header: true,
-                skipEmptyLines: true,
-                complete: (results) => {
-                    rawTransacoes = results.data;
-                    document.getElementById('statusTransacoes').innerText = `Carregado: ${results.data.length} linhas`;
-                    document.getElementById('statusTransacoes').classList.add('text-green-400');
-                }
-            });
+            Papa.parse(file, { header: true, skipEmptyLines: true, complete: (results) => {
+                rawTransacoes = results.data;
+                document.getElementById('statusTransacoes').innerText = `Carregado: ${results.data.length} linhas`;
+                document.getElementById('statusTransacoes').classList.add('text-green-400');
+            }});
         });
 
-        fileUsuarios.addEventListener('change', (e) => {
+        document.getElementById('fileUsuarios').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if(!file) return;
-            Papa.parse(file, {
-                header: true,
-                skipEmptyLines: true,
-                complete: (results) => {
-                    rawUsuarios = results.data;
-                    document.getElementById('statusUsuarios').innerText = `Carregado: ${results.data.length} linhas`;
-                    document.getElementById('statusUsuarios').classList.add('text-green-400');
-                }
-            });
+            Papa.parse(file, { header: true, skipEmptyLines: true, complete: (results) => {
+                rawUsuarios = results.data;
+                document.getElementById('statusUsuarios').innerText = `Carregado: ${results.data.length} linhas`;
+                document.getElementById('statusUsuarios').classList.add('text-green-400');
+            }});
         });
 
-        // --- 2. Date Helpers ---
-        startDateInput.addEventListener('change', (e) => {
-            const start = new Date(e.target.value + 'T00:00:00'); 
+        // Email Input
+        document.getElementById('fileEmails').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const text = evt.target.result;
+                const lines = text.split('\n');
+                // Skip first 3 metadata lines
+                const cleanCsv = lines.slice(3).join('\n');
+                Papa.parse(cleanCsv, { header: true, skipEmptyLines: true, complete: (results) => {
+                    rawEmails = results.data;
+                    document.getElementById('statusEmails').innerText = `Carregado: ${results.data.length} campanhas`;
+                    document.getElementById('statusEmails').classList.add('text-green-400');
+                    document.getElementById('statusEmails').classList.remove('text-secondary');
+                }});
+            };
+            reader.readAsText(file);
+        });
+
+        // Sync Date Pickers
+        const dateAcq = document.getElementById('startDateAcq');
+        const dateEmail = document.getElementById('startDateEmail');
+
+        function updateDateDisplay(input, displayId) {
+            if(!input.value) return;
+            const start = new Date(input.value + 'T00:00:00');
             const end = new Date(start);
             end.setDate(end.getDate() + 6);
-            
             const fmt = d => d.toLocaleDateString('pt-BR');
-            document.getElementById('weekRangeDisplay').innerText = `Análise: ${fmt(start)} a ${fmt(end)}`;
+            document.getElementById(displayId).innerText = `Análise: ${fmt(start)} a ${fmt(end)}`;
+        }
+
+        dateAcq.addEventListener('change', (e) => {
+            dateEmail.value = e.target.value; // Sync
+            updateDateDisplay(e.target, 'weekRangeDisplayAcq');
+            updateDateDisplay(dateEmail, 'weekRangeDisplayEmail');
         });
 
+        dateEmail.addEventListener('change', (e) => {
+            dateAcq.value = e.target.value; // Sync
+            updateDateDisplay(e.target, 'weekRangeDisplayEmail');
+            updateDateDisplay(dateAcq, 'weekRangeDisplayAcq');
+        });
+
+        // --- Core Process Function ---
+        function processData(mode) {
+            const startDateVal = document.getElementById(mode === 'aquisicao' ? 'startDateAcq' : 'startDateEmail').value;
+            
+            if (!startDateVal) {
+                alert("Por favor, selecione a data de início da semana.");
+                return;
+            }
+
+            const startWeek = new Date(startDateVal + 'T00:00:00');
+            const endWeek = new Date(startWeek);
+            endWeek.setDate(endWeek.getDate() + 6);
+            endWeek.setHours(23, 59, 59, 999);
+
+            if (mode === 'aquisicao') {
+                if (rawTransacoes.length === 0 || rawUsuarios.length === 0) {
+                    alert("Por favor, faça upload dos CSVs de Transações e Usuários.");
+                    return;
+                }
+                
+                document.getElementById('resultsAreaAcq').classList.remove('hidden');
+                document.getElementById('resultsAreaAcq').classList.add('grid');
+
+                const startPrevWeek = new Date(startWeek);
+                startPrevWeek.setDate(startPrevWeek.getDate() - 7);
+                const endPrevWeek = new Date(startWeek);
+                endPrevWeek.setDate(endPrevWeek.getDate() - 1); 
+
+                generateAquisicao(startWeek, endWeek, startPrevWeek, endPrevWeek);
+                generateValidados(startWeek); 
+                generatePivots(startWeek, endWeek, 'profissao', 'renderProfissao', 'tableProfissao', 'Profissão');
+                generatePivots(startWeek, endWeek, 'utm_campaign', 'renderCampanha', 'tableCampanha', 'Campanha');
+                generateConversao(startWeek, endWeek);
+                generateDistribuicaoVendas(startWeek, endWeek); 
+                generatePlanos(startWeek, endWeek);
+                generateHistoricoMensal(startWeek);
+            } 
+            else if (mode === 'email') {
+                if (rawEmails.length === 0) {
+                    alert("Por favor, faça upload do CSV da Brevo.");
+                    return;
+                }
+                
+                document.getElementById('resultsAreaEmail').classList.remove('hidden');
+                document.getElementById('resultsAreaEmail').classList.add('grid');
+                
+                generateEmailTable(startWeek, endWeek);
+                generateEmailWeeklySummary(startWeek); // NEW FUNCTION CALL
+            }
+        }
+
+        // --- Helpers ---
         function parseDateBR(dateStr) {
             if(!dateStr) return null;
             const parts = dateStr.split('/');
@@ -568,37 +742,11 @@
             return new Date(parts[2], parts[1] - 1, parts[0]);
         }
 
-        function processData() {
-            if (rawTransacoes.length === 0 || rawUsuarios.length === 0) {
-                alert("Por favor, faça upload dos dois arquivos CSV.");
-                return;
-            }
-            if (!startDateInput.value) {
-                alert("Por favor, selecione a data de início da semana (Domingo).");
-                return;
-            }
-
-            const startWeek = new Date(startDateInput.value + 'T00:00:00');
-            const endWeek = new Date(startWeek);
-            endWeek.setDate(endWeek.getDate() + 6);
-            endWeek.setHours(23, 59, 59, 999);
-
-            const startPrevWeek = new Date(startWeek);
-            startPrevWeek.setDate(startPrevWeek.getDate() - 7);
-            const endPrevWeek = new Date(startWeek);
-            endPrevWeek.setDate(endPrevWeek.getDate() - 1); 
-
-            document.getElementById('resultsArea').classList.remove('hidden');
-            document.getElementById('resultsArea').classList.add('grid');
-
-            generateAquisicao(startWeek, endWeek, startPrevWeek, endPrevWeek);
-            generateValidados(startWeek); 
-            generatePivots(startWeek, endWeek, 'profissao', 'renderProfissao', 'tableProfissao', 'Profissão');
-            generatePivots(startWeek, endWeek, 'utm_campaign', 'renderCampanha', 'tableCampanha', 'Campanha');
-            generateConversao(startWeek, endWeek);
-            generateDistribuicaoVendas(startWeek, endWeek); 
-            generatePlanos(startWeek, endWeek);
-            generateHistoricoMensal(startWeek);
+        function parseDateBrevo(dateStr) {
+            if(!dateStr) return null;
+            const parts = dateStr.split('-');
+            if(parts.length !== 3) return null;
+            return new Date(parts[2], parts[1] - 1, parts[0]);
         }
 
         function isUserValid(u) {
@@ -606,25 +754,163 @@
             return v === 'true' || v === '1' || v === 'sim';
         }
 
-        function generateAquisicao(currentStart, currentEnd, prevStart, prevEnd) {
-            const counts = {}; 
+        // --- Generators (Condensed for brevity, assumed same logic as before) ---
+        // Just ensuring `generateEmailTable` uses the new logic requested
 
-            rawUsuarios.forEach(u => {
-                const d = parseDateBR(u['data_criacao_usuario (Data)']);
-                if (!d) return;
-                if (!isUserValid(u)) return; 
-
-                const medium = u['utm_medium'] || '(not set)';
-                
-                if (!counts[medium]) counts[medium] = { current: 0, prev: 0 };
-
-                if (d >= currentStart && d <= currentEnd) {
-                    counts[medium].current++;
-                } else if (d >= prevStart && d <= prevEnd) {
-                    counts[medium].prev++;
-                }
+        function generateEmailTable(start, end) {
+            const emailsInWeek = rawEmails.filter(e => {
+                const d = parseDateBrevo(e['Sending date']);
+                return d && d >= start && d <= end;
             });
 
+            emailsInWeek.sort((a,b) => parseDateBrevo(a['Sending date']) - parseDateBrevo(b['Sending date']));
+
+            let html = `<table id="tableEmails"><thead>
+                <tr>
+                    <th>Data</th><th>Nome da Campanha</th><th>Assunto</th>
+                    <th>Enviados</th><th>Entregues</th><th>Taxa de Abertura</th>
+                    <th>CTOR</th><th>Descadastrados</th>
+                </tr></thead><tbody>`;
+            
+            if (emailsInWeek.length === 0) {
+                html += `<tr><td colspan="8" class="text-center py-4" style="color: var(--text-secondary);">Nenhuma campanha encontrada neste período.</td></tr>`;
+            } else {
+                emailsInWeek.forEach(e => {
+                    const d = parseDateBrevo(e['Sending date']);
+                    const fmtDate = d.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'});
+                    
+                    // Helper to format numbers with dots (e.g. 34592 -> 34.592)
+                    const fmtNum = (val) => {
+                        const n = parseInt(val);
+                        return isNaN(n) ? val : n.toLocaleString('pt-BR');
+                    };
+
+                    // Helper to format "Rate% (Count)" style
+                    const fmtMetric = (rate, count, rateColorClass = "") => {
+                        return `<span class="${rateColorClass}">${rate}</span> <span class="text-xs" style="color: var(--text-secondary);">(${fmtNum(count)})</span>`;
+                    };
+
+                    const subject = e['Subject'] ? e['Subject'] : '<span class="accent-text" style="font-style: italic;">[Teste A/B]</span>';
+
+                    html += `<tr>
+                        <td>${fmtDate}</td>
+                        <td class="text-xs">${e['Campaign Name']}</td>
+                        <td class="text-xs" style="color: var(--text-secondary); italic">${subject}</td>
+                        <td>${fmtNum(e['Sent'])}</td>
+                        <td>${fmtMetric(e['Delivered rate'], e['Delivered'])}</td>
+                        <td>${fmtMetric(e['Trackable open rate'], e['Opens'], 'text-green-400 font-bold')}</td>
+                        <td>${fmtMetric(e['Click-to-Open rate'], e['Clicked'], 'accent-text font-bold')}</td>
+                        <td>${fmtMetric(e['Unsubscription rate'], e['Unsubscribed'], 'text-red-400')}</td>
+                    </tr>`;
+                });
+            }
+            html += `</tbody></table>`;
+            document.getElementById('renderEmails').innerHTML = html;
+        }
+        
+        // NEW FUNCTION: Weekly Email Summary
+        function generateEmailWeeklySummary(currentWeekStart) {
+            const month = currentWeekStart.getMonth(); 
+            const year = currentWeekStart.getFullYear();
+            let iterator = new Date(year, month, 1);
+            while (iterator.getDay() !== 0) {
+                iterator.setDate(iterator.getDate() + 1);
+            }
+            
+            const weeksList = [];
+            const currentWeekEnd = new Date(currentWeekStart);
+            currentWeekEnd.setDate(currentWeekEnd.getDate() + 6);
+            currentWeekEnd.setHours(23, 59, 59, 999);
+
+            let safety = 0;
+            while (iterator <= currentWeekEnd && safety < 10) {
+                const wStart = new Date(iterator);
+                const wEnd = new Date(iterator);
+                wEnd.setDate(wEnd.getDate() + 6);
+                wEnd.setHours(23, 59, 59, 999);
+                weeksList.push({ start: wStart, end: wEnd });
+                iterator.setDate(iterator.getDate() + 7);
+                safety++;
+            }
+
+            let html = `<table id="tableEmailSemanal"><thead>
+                <tr>
+                    <th>Semana</th>
+                    <th>Enviados</th>
+                    <th>Entregues</th>
+                    <th>Taxa de Abertura</th>
+                    <th>CTOR</th>
+                    <th>Descadastrados</th>
+                </tr></thead><tbody>`;
+            
+            weeksList.forEach(w => {
+                // Filter emails in this week
+                const emailsInWeek = rawEmails.filter(e => {
+                    const d = parseDateBrevo(e['Sending date']);
+                    return d && d >= w.start && d <= w.end;
+                });
+                
+                // Aggregate totals
+                let totalSent = 0;
+                let totalDelivered = 0;
+                let totalOpens = 0;
+                let totalClicks = 0;
+                let totalUnsub = 0;
+
+                emailsInWeek.forEach(e => {
+                    totalSent += parseInt(e['Sent']) || 0;
+                    totalDelivered += parseInt(e['Delivered']) || 0;
+                    totalOpens += parseInt(e['Opens']) || 0;
+                    totalClicks += parseInt(e['Clicked']) || 0;
+                    totalUnsub += parseInt(e['Unsubscribed']) || 0;
+                });
+
+                // Calculate weighted rates
+                // Delivery Rate = Delivered / Sent
+                const delRate = totalSent ? ((totalDelivered / totalSent) * 100).toFixed(2) + '%' : "0.00%";
+                // Open Rate = Opens / Delivered
+                const openRate = totalDelivered ? ((totalOpens / totalDelivered) * 100).toFixed(2) + '%' : "0.00%";
+                // CTOR = Clicks / Opens
+                const ctor = totalOpens ? ((totalClicks / totalOpens) * 100).toFixed(2) + '%' : "0.00%";
+                // Unsub Rate = Unsub / Delivered
+                const unsubRate = totalDelivered ? ((totalUnsub / totalDelivered) * 100).toFixed(2) + '%' : "0.00%";
+
+                const fmtNum = (n) => n.toLocaleString('pt-BR');
+                const fmtMetric = (rate, count, rateColorClass = "") => {
+                    return `<span class="${rateColorClass}">${rate}</span> <span class="text-xs" style="color: var(--text-secondary);">(${fmtNum(count)})</span>`;
+                };
+
+                const fmtDate = d => d.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'});
+                
+                if (emailsInWeek.length > 0) {
+                    html += `<tr>
+                        <td>${fmtDate(w.start)} a ${fmtDate(w.end)}</td>
+                        <td>${fmtNum(totalSent)}</td>
+                        <td>${fmtMetric(delRate, totalDelivered)}</td>
+                        <td>${fmtMetric(openRate, totalOpens, 'text-green-400 font-bold')}</td>
+                        <td>${fmtMetric(ctor, totalClicks, 'accent-text font-bold')}</td>
+                        <td>${fmtMetric(unsubRate, totalUnsub, 'text-red-400')}</td>
+                    </tr>`;
+                }
+            });
+            
+            html += `</tbody></table>`;
+            document.getElementById('renderEmailSemanal').innerHTML = html;
+        }
+
+        // Functions for Acquisition (generateAquisicao, generateValidados, etc.) remain exactly the same as V7/V8
+        // Re-included here for completeness of the file block
+        
+        function generateAquisicao(currentStart, currentEnd, prevStart, prevEnd) {
+            const counts = {}; 
+            rawUsuarios.forEach(u => {
+                const d = parseDateBR(u['data_criacao_usuario (Data)']);
+                if (!d || !isUserValid(u)) return;
+                const medium = u['utm_medium'] || '(not set)';
+                if (!counts[medium]) counts[medium] = { current: 0, prev: 0 };
+                if (d >= currentStart && d <= currentEnd) counts[medium].current++;
+                else if (d >= prevStart && d <= prevEnd) counts[medium].prev++;
+            });
             const rows = Object.keys(counts).map(m => {
                 const c = counts[m].current;
                 const p = counts[m].prev;
@@ -632,13 +918,9 @@
                 if (p > 0) {
                     const diff = ((c - p) / p) * 100;
                     variacao = diff.toFixed(2) + '%';
-                } else if (c > 0 && p === 0) {
-                    variacao = 'Novo';
-                }
-
+                } else if (c > 0 && p === 0) variacao = 'Novo';
                 return { medium: m, current: c, prev: p, var: variacao };
-            }).filter(r => r.current > 0 || r.prev > 0)
-              .sort((a,b) => b.current - a.current);
+            }).filter(r => r.current > 0 || r.prev > 0).sort((a,b) => b.current - a.current);
 
             let html = `<table id="tableAquisicao"><thead><tr><th>Medium</th><th>Semana Anterior</th><th>Semana Atual</th><th>Variação</th></tr></thead><tbody>`;
             rows.forEach(r => {
@@ -651,62 +933,36 @@
 
         function generateValidados(currentWeekStart) {
              const weeksList = [];
-             
              for (let i = 0; i < 8; i++) {
                  const wStart = new Date(currentWeekStart);
                  wStart.setDate(wStart.getDate() - (7 * i));
-                 
                  const wEnd = new Date(wStart);
                  wEnd.setDate(wEnd.getDate() + 6);
                  wEnd.setHours(23, 59, 59, 999);
-                 
                  weeksList.push({ start: wStart, end: wEnd });
              }
-
              weeksList.reverse();
-
              let html = `<table id="tableValidados"><thead><tr><th>Semana</th><th>Validados</th><th>%</th><th>Não Validados</th><th>%</th><th>Total</th></tr></thead><tbody>`;
-             
              let rowsAdded = 0;
-
              weeksList.forEach(w => {
                  let validados = 0;
                  let naoValidados = 0;
-
                  rawUsuarios.forEach(u => {
                     const d = parseDateBR(u['data_criacao_usuario (Data)']);
                     if (d && d >= w.start && d <= w.end) {
-                        if (isUserValid(u)) {
-                            validados++;
-                        } else {
-                            naoValidados++;
-                        }
+                        if (isUserValid(u)) validados++; else naoValidados++;
                     }
                  });
-
                  const total = validados + naoValidados;
-                 
                  if (total > 0) {
                      const percVal = ((validados/total)*100).toFixed(2);
                      const percNao = ((naoValidados/total)*100).toFixed(2);
                      const fmtDate = d => d.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'});
-                     
-                     html += `<tr>
-                        <td>${fmtDate(w.start)} a ${fmtDate(w.end)}</td>
-                        <td class="text-green-400 font-medium">${validados}</td>
-                        <td>${percVal}%</td>
-                        <td class="text-gray-400" style="color: var(--text-secondary);">${naoValidados}</td>
-                        <td>${percNao}%</td>
-                        <td class="font-bold" style="color: var(--text-primary);">${total}</td>
-                     </tr>`;
+                     html += `<tr><td>${fmtDate(w.start)} a ${fmtDate(w.end)}</td><td class="text-green-400 font-medium">${validados}</td><td>${percVal}%</td><td class="text-gray-400" style="color: var(--text-secondary);">${naoValidados}</td><td>${percNao}%</td><td class="font-bold" style="color: var(--text-primary);">${total}</td></tr>`;
                      rowsAdded++;
                  }
              });
-
-             if(rowsAdded === 0) {
-                 html += `<tr><td colspan="6" class="text-center py-4" style="color: var(--text-secondary);">Nenhum dado encontrado para o período.</td></tr>`;
-             }
-
+             if(rowsAdded === 0) html += `<tr><td colspan="6" class="text-center py-4" style="color: var(--text-secondary);">Nenhum dado encontrado para o período.</td></tr>`;
              html += `</tbody></table>`;
              document.getElementById('renderValidados').innerHTML = html;
         }
@@ -718,19 +974,8 @@
                 days.push(new Date(curr));
                 curr.setDate(curr.getDate() + 1);
             }
-
             const matrix = {}; 
-            
-            const profissoesAlvo = [
-                'Eletricista', 
-                'Estudante', 
-                'Eletrotécnico', 
-                'Engenheiro Eletricista', 
-                'Outro', 
-                'Engenheiro Civil', 
-                'Arquiteto'
-            ];
-
+            const profissoesAlvo = ['Eletricista', 'Estudante', 'Eletrotécnico', 'Engenheiro Eletricista', 'Outro', 'Engenheiro Civil', 'Arquiteto'];
             rawUsuarios.forEach(u => {
                 const d = parseDateBR(u['data_criacao_usuario (Data)']);
                 if (d && d >= start && d <= end) {
@@ -739,7 +984,7 @@
                     if (keyColumn === 'profissao') {
                         const profissaoLimpa = key.trim();
                         const match = profissoesAlvo.find(p => p.toLowerCase() === profissaoLimpa.toLowerCase());
-                        if (match) { key = match; } else { key = 'Profissão customizada'; }
+                        if (match) key = match; else key = 'Profissão customizada';
                     }
                     const dateKey = d.toLocaleDateString('pt-BR'); 
                     if (!matrix[key]) matrix[key] = { total: 0 };
@@ -748,7 +993,6 @@
                     matrix[key].total++;
                 }
             });
-
             let sortedKeys;
             if (keyColumn === 'profissao') {
                 sortedKeys = Object.keys(matrix).sort((a, b) => {
@@ -762,11 +1006,9 @@
             } else {
                 sortedKeys = Object.keys(matrix).sort((a,b) => matrix[b].total - matrix[a].total);
             }
-
             let html = `<table id="${tableId}"><thead><tr><th>${label}</th>`;
             days.forEach(d => html += `<th>${d.toLocaleDateString('pt-BR')}</th>`);
             html += `<th>Total</th></tr></thead><tbody>`;
-
             sortedKeys.forEach(k => {
                 html += `<tr><td>${k}</td>`;
                 days.forEach(d => {
@@ -775,7 +1017,6 @@
                 });
                 html += `<td class="font-bold" style="color: var(--text-primary);">${matrix[k].total}</td></tr>`;
             });
-            
             html += `<tr style="background-color: var(--table-hover); font-weight: bold; color: var(--woca-orange);"><td>TOTAL DO DIA</td>`;
             let weekTotal = 0;
             days.forEach(d => {
@@ -788,7 +1029,6 @@
                 html += `<td>${daySum}</td>`;
             });
             html += `<td>${weekTotal}</td></tr>`;
-
             html += `</tbody></table>`;
             document.getElementById(targetDiv).innerHTML = html;
         }
@@ -804,10 +1044,8 @@
                     transMap[email].push(t);
                 }
             });
-
             const seenConversions = new Set();
             const conversions = [];
-
             rawUsuarios.forEach(u => {
                 const dCreated = parseDateBR(u['data_criacao_usuario (Data)']);
                 if (dCreated && dCreated >= start && dCreated <= end) {
@@ -833,22 +1071,15 @@
                     }
                 }
             });
-
             let html = `<table id="tableConversao"><thead><tr>
                     <th>Email</th><th>Data Transação</th><th>Plano</th><th>Origem (Medium)</th>
                     <th>Campanha</th><th>Data Cadastro</th><th>Valor</th>
                 </tr></thead><tbody>`;
-            
             if (conversions.length === 0) {
                 html += `<tr><td colspan="7" class="text-center py-4" style="color: var(--text-secondary);">Nenhuma conversão direta encontrada para cadastros desta semana.</td></tr>`;
             } else {
                 conversions.forEach(c => {
-                    html += `<tr>
-                        <td class="text-xs" style="color: var(--text-secondary);">${c.email}</td>
-                        <td>${c.data_transacao}</td><td>${c.plano}</td><td>${c.medium || '-'}</td>
-                        <td>${c.campaign || '-'}</td><td>${c.data_cadastro}</td>
-                        <td class="text-green-400">R$ ${c.valor}</td>
-                    </tr>`;
+                    html += `<tr><td class="text-xs" style="color: var(--text-secondary);">${c.email}</td><td>${c.data_transacao}</td><td>${c.plano}</td><td>${c.medium || '-'}</td><td>${c.campaign || '-'}</td><td>${c.data_cadastro}</td><td class="text-green-400">R$ ${c.valor}</td></tr>`;
                 });
             }
             html += `</tbody></table>`;
@@ -867,10 +1098,8 @@
                     transMap[email].push(t);
                 }
             });
-
             const seenConversions = new Set();
             const counts = {};
-
             rawUsuarios.forEach(u => {
                 const dCreated = parseDateBR(u['data_criacao_usuario (Data)']);
                 if (dCreated && dCreated >= start && dCreated <= end) {
@@ -891,7 +1120,6 @@
                     }
                 }
             });
-
             const plans = Object.keys(counts).sort((a, b) => {
                 const getScore = (p) => {
                     const low = p.toLowerCase();
@@ -903,7 +1131,6 @@
                 if (scoreA !== scoreB) return scoreB - scoreA;
                 return a.localeCompare(b);
             });
-            
             let html = `<table id="tableDistVendas"><thead><tr><th>Plano</th>`;
             plans.forEach(p => {
                 const isPaid = p.toLowerCase().includes('pro') || p.toLowerCase().includes('advanced');
@@ -911,7 +1138,6 @@
                 html += `<th class="${classHeader}">${p}</th>`;
             });
             html += `</tr></thead><tbody><tr><td>Quantidade</td>`;
-            
             plans.forEach(p => {
                 html += `<td>${counts[p]}</td>`;
             });
@@ -932,7 +1158,6 @@
                     counts[plano] = (counts[plano] || 0) + 1;
                 }
             });
-
             const plans = Object.keys(counts).sort((a, b) => {
                 const getScore = (p) => {
                     const low = p.toLowerCase();
@@ -944,7 +1169,6 @@
                 if (scoreA !== scoreB) return scoreB - scoreA;
                 return a.localeCompare(b);
             });
-            
             let html = `<table id="tablePlanos"><thead><tr><th>Plano</th>`;
             plans.forEach(p => {
                 const isPaid = p.toLowerCase().includes('pro') || p.toLowerCase().includes('advanced');
@@ -966,12 +1190,10 @@
             while (iterator.getDay() !== 0) {
                 iterator.setDate(iterator.getDate() + 1);
             }
-            
             const weeksList = [];
             const currentWeekEnd = new Date(currentWeekStart);
             currentWeekEnd.setDate(currentWeekEnd.getDate() + 6);
             currentWeekEnd.setHours(23, 59, 59, 999);
-
             let safety = 0;
             while (iterator <= currentWeekEnd && safety < 10) {
                 const wStart = new Date(iterator);
@@ -982,16 +1204,12 @@
                 iterator.setDate(iterator.getDate() + 7);
                 safety++;
             }
-
-            let htmlHist = `<table id="tableHistorico"><thead>
-                <tr><th>Semana</th><th title="Conversão dentro da própria semana de cadastro">Imediata (Semana)</th><th title="Conversão acumulada até hoje">Total (Safra)</th></tr></thead><tbody>`;
-            
+            let htmlHist = `<table id="tableHistorico"><thead><tr><th>Semana</th><th title="Conversão dentro da própria semana de cadastro">Imediata (Semana)</th><th title="Conversão acumulada até hoje">Total (Safra)</th></tr></thead><tbody>`;
             let htmlVel = `<table id="tableVelocidade"><thead><tr><th>Semana</th>`;
             for(let i=0; i<=15; i++) {
                 htmlVel += `<th class="cohort-header text-center">${i}</th>`;
             }
             htmlVel += `</tr></thead><tbody>`;
-
             const transMap = {}; 
             rawTransacoes.forEach(t => {
                 const email = t['username'];
@@ -1002,27 +1220,21 @@
                     transMap[email].push(t);
                 }
             });
-
-            // CHECK THEME for text color
             const isLight = document.body.classList.contains('light-mode');
             const cohortTextColor = isLight ? '#000000' : '#ffffff';
-
             weeksList.forEach(w => {
                 const usersInWeek = rawUsuarios.filter(u => {
                     const d = parseDateBR(u['data_criacao_usuario (Data)']);
                     return d && d >= w.start && d <= w.end && isUserValid(u);
                 });
-
                 const totalUsers = usersInWeek.length;
                 let convertedSameWeek = 0;
                 let convertedTotal = 0;
                 const dailyCounts = new Array(16).fill(0);
-
                 usersInWeek.forEach(u => {
                     const dCreated = parseDateBR(u['data_criacao_usuario (Data)']);
                     const email = u['username'];
                     const transactions = transMap[email];
-
                     if (transactions) {
                         const hasSameWeekTrans = transactions.some(t => {
                             const dTrans = parseDateBR(t['data_transacao (Data)']);
@@ -1030,13 +1242,11 @@
                         });
                         if (hasSameWeekTrans) convertedSameWeek++;
                         convertedTotal++;
-
                         let earliestDate = null;
                         transactions.forEach(t => {
                             const dTrans = parseDateBR(t['data_transacao (Data)']);
                             if (!earliestDate || dTrans < earliestDate) earliestDate = dTrans;
                         });
-
                         if (earliestDate) {
                             const diffTime = Math.abs(earliestDate - dCreated);
                             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
@@ -1046,18 +1256,13 @@
                         }
                     }
                 });
-
                 const conversionRateSame = totalUsers ? ((convertedSameWeek / totalUsers) * 100).toFixed(2) : "0.00";
                 const conversionRateTotal = totalUsers ? ((convertedTotal / totalUsers) * 100).toFixed(2) : "0.00";
                 const fmt = d => d.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'});
                 const weekLabel = `${fmt(w.start)} a ${fmt(w.end)}`;
-
                 htmlHist += `<tr><td>${weekLabel}</td><td class="accent-text font-bold">${conversionRateSame}%</td><td class="text-green-400 font-bold">${conversionRateTotal}%</td></tr>`;
-
                 const maxVal = Math.max(...dailyCounts);
-
                 htmlVel += `<tr><td style="white-space: nowrap; font-size: 0.75rem;">${weekLabel}</td>`;
-                
                 for(let i=0; i<=15; i++) {
                     const val = dailyCounts[i];
                     let bgStyle = '';
@@ -1071,10 +1276,8 @@
                 }
                 htmlVel += `</tr>`;
             });
-
             htmlHist += `</tbody></table>`;
             htmlVel += `</tbody></table>`;
-
             document.getElementById('renderHistorico').innerHTML = htmlHist;
             document.getElementById('renderVelocidade').innerHTML = htmlVel;
         }
