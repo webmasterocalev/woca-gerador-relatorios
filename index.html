@@ -892,10 +892,14 @@
                 p2_start = new Date(start); p2_start.setMonth(p2_start.getMonth() - 2);
                 p2_end = new Date(p2_start); p2_end.setMonth(p2_end.getMonth() + 1); p2_end.setDate(0);
                 
-                const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-                l0 = monthNames[p0_start.getMonth()];
-                l1 = monthNames[p1_start.getMonth()];
-                l2 = monthNames[p2_start.getMonth()];
+                const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+                const year0 = p0_start.getFullYear();
+                const year1 = p1_start.getFullYear();
+                const year2 = p2_start.getFullYear();
+
+                l0 = `${monthNames[p0_start.getMonth()]} de ${year0}`;
+                l1 = `${monthNames[p1_start.getMonth()]} de ${year1}`;
+                l2 = `${monthNames[p2_start.getMonth()]} de ${year2}`;
             }
             
             // End of day fix
@@ -1064,6 +1068,7 @@
                 } else {
                     rows.forEach(r => {
                         // Helper to render stats cell
+                        // REVERTED: Using Div wrapper for layout stability, but with simplified styling
                         const cell = (stats) => {
                             if(!stats || stats.mean == 0) return `<span class="text-xs opacity-30">-</span>`;
                             return `<span class="font-bold">${stats.mean}</span><br><span class="text-xs" style="color: var(--text-secondary);">Med: ${stats.median}</span>`;
@@ -1544,7 +1549,7 @@
                     }
                 });
                 
-                let htmlHist = `<table id="tableHistorico"><thead><tr><th>Mês</th><th>Conversão Imediata</th><th>Conversão Total (Safra)</th></tr></thead><tbody>`;
+                let htmlHist = `<table id="tableHistorico"><thead><tr><th>Mês</th><th>Conversão (Até 7 Dias)</th><th>Conversão (Até 30 Dias)</th><th>Conversão (Após 30 Dias)</th></tr></thead><tbody>`;
                 
                 // --- VELOCITY (Cohort) 30 Days Logic ---
                 let htmlVel = `<table id="tableVelocidade"><thead><tr><th>Mês</th>`;
@@ -1562,8 +1567,9 @@
                         return d && d >= p.start && d <= p.end && isUserValid(u);
                     });
                     const totalUsers = users.length;
-                    let convImmediate = 0;
-                    let convTotal = 0;
+                    let conv7 = 0;
+                    let conv30 = 0;
+                    let convAfter30 = 0;
                     const dailyCounts = new Array(31).fill(0);
 
                     users.forEach(u => {
@@ -1571,33 +1577,35 @@
                         const email = u['username'];
                         const txs = transMap[email];
                         if(txs) {
-                            // Immediate: bought within same period
-                            if (txs.some(t => {
-                                const d = parseDateBR(t['data_transacao (Data)']);
-                                return d && d >= p.start && d <= p.end;
-                            })) convImmediate++;
+                            // Sort txs by date asc
+                            txs.sort((a,b) => parseDateBR(a['data_transacao (Data)']) - parseDateBR(b['data_transacao (Data)']));
+                            // Get first tx
+                            const firstTx = txs[0];
+                            const dFirstTx = parseDateBR(firstTx['data_transacao (Data)']);
+
+                            // Check for conversions relative to user creation
+                            const diffTime = dFirstTx - dCreated;
+                            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
                             
-                            convTotal++;
+                            if(diffDays <= 7) {
+                                conv7++;
+                                conv30++;
+                            } else if(diffDays <= 30) {
+                                conv30++;
+                            } else {
+                                convAfter30++;
+                            }
 
                             // Velocity: Find EARLIEST transaction ever
-                            let earliest = null;
-                            txs.forEach(t => {
-                                const d = parseDateBR(t['data_transacao (Data)']);
-                                if(!earliest || d < earliest) earliest = d;
-                            });
-                            
-                            if(earliest) {
-                                const diffTime = Math.abs(earliest - dCreated);
-                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                                if (diffDays >= 0 && diffDays <= 30) dailyCounts[diffDays]++;
-                            }
+                            if (diffDays >= 0 && diffDays <= 30) dailyCounts[diffDays]++;
                         }
                     });
                     
-                    const rateImm = totalUsers ? ((convImmediate/totalUsers)*100).toFixed(2) : "0.00";
-                    const rateTot = totalUsers ? ((convTotal/totalUsers)*100).toFixed(2) : "0.00";
+                    const rate7 = totalUsers ? ((conv7/totalUsers)*100).toFixed(2) : "0.00";
+                    const rate30 = totalUsers ? ((conv30/totalUsers)*100).toFixed(2) : "0.00";
+                    const rateAfter30 = totalUsers ? ((convAfter30/totalUsers)*100).toFixed(2) : "0.00";
                     
-                    htmlHist += `<tr><td>${p.label}</td><td class="font-bold">${rateImm}%</td><td class="font-bold">${rateTot}%</td></tr>`;
+                    htmlHist += `<tr><td>${p.label}</td><td class="font-bold">${rate7}%</td><td class="font-bold">${rate30}%</td><td class="font-bold">${rateAfter30}%</td></tr>`;
                     
                     htmlVel += `<tr><td style="white-space: nowrap; font-size: 0.75rem;">${p.label}</td>`;
                     for(let i=0; i<=30; i++) {
@@ -1641,7 +1649,7 @@
                     safety++;
                 }
 
-                let htmlHist = `<table id="tableHistorico"><thead><tr><th>Semana</th><th title="Conversão dentro da própria semana de cadastro">Imediata (Semana)</th><th title="Conversão acumulada até hoje">Total (Safra)</th></tr></thead><tbody>`;
+                let htmlHist = `<table id="tableHistorico"><thead><tr><th>Semana</th><th title="Conversão dentro da própria semana de cadastro">Até 7 Dias</th><th title="Conversão acumulada até 30 dias">Até 30 Dias</th><th title="Conversão após 30 dias">Após 30 Dias</th></tr></thead><tbody>`;
                 
                 let htmlVel = `<table id="tableVelocidade"><thead><tr><th>Semana</th>`;
                 for(let i=0; i<=15; i++) htmlVel += `<th class="cohort-header text-center">${i}</th>`;
@@ -1661,7 +1669,7 @@
                         return d && d >= w.start && d <= w.end && isUserValid(u);
                     });
                     const totalUsers = users.length;
-                    let convImmediate = 0; let convTotal = 0;
+                    let conv7 = 0; let conv30 = 0; let convAfter30 = 0;
                     const dailyCounts = new Array(16).fill(0);
 
                     users.forEach(u => {
@@ -1669,31 +1677,35 @@
                         const email = u['username'];
                         const txs = transMap[email];
                         if (txs) {
-                            if (txs.some(t => {
-                                const d = parseDateBR(t['data_transacao (Data)']);
-                                return d && d >= w.start && d <= w.end;
-                            })) convImmediate++;
-                            convTotal++;
-                            
-                            let earliest = null;
-                            txs.forEach(t => {
-                                const d = parseDateBR(t['data_transacao (Data)']);
-                                if(!earliest || d < earliest) earliest = d;
-                            });
-                            if (earliest) {
-                                const diffTime = Math.abs(earliest - dCreated);
-                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-                                if (diffDays >= 0 && diffDays <= 15) dailyCounts[diffDays]++;
+                            // Sort txs by date asc
+                            txs.sort((a,b) => parseDateBR(a['data_transacao (Data)']) - parseDateBR(b['data_transacao (Data)']));
+                            // Get first tx
+                            const firstTx = txs[0];
+                            const dFirstTx = parseDateBR(firstTx['data_transacao (Data)']);
+
+                            const diffTime = dFirstTx - dCreated;
+                            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                            if(diffDays <= 7) {
+                                conv7++;
+                                conv30++;
+                            } else if(diffDays <= 30) {
+                                conv30++;
+                            } else {
+                                convAfter30++;
                             }
+                            
+                            if (diffDays >= 0 && diffDays <= 15) dailyCounts[diffDays]++;
                         }
                     });
 
-                    const rImm = totalUsers ? ((convImmediate / totalUsers) * 100).toFixed(2) : "0.00";
-                    const rTot = totalUsers ? ((convTotal / totalUsers) * 100).toFixed(2) : "0.00";
+                    const rate7 = totalUsers ? ((conv7 / totalUsers) * 100).toFixed(2) : "0.00";
+                    const rate30 = totalUsers ? ((conv30 / totalUsers) * 100).toFixed(2) : "0.00";
+                    const rateAfter30 = totalUsers ? ((convAfter30 / totalUsers) * 100).toFixed(2) : "0.00";
                     const fmt = d => d.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'});
                     const label = `${fmt(w.start)} a ${fmt(w.end)}`;
 
-                    htmlHist += `<tr><td>${label}</td><td class="font-bold">${rImm}%</td><td class="font-bold">${rTot}%</td></tr>`;
+                    htmlHist += `<tr><td>${label}</td><td class="font-bold">${rate7}%</td><td class="font-bold">${rate30}%</td><td class="font-bold">${rateAfter30}%</td></tr>`;
 
                     htmlVel += `<tr><td style="white-space: nowrap; font-size: 0.75rem;">${label}</td>`;
                     for(let i=0; i<=15; i++) {
