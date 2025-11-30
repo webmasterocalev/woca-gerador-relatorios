@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Woca Report Generator</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- PapaParse for CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    
+    <!-- html2canvas for PNG Download -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    
+    <!-- Switzer Font -->
+    <link href="https://api.fontshare.com/v2/css?f[]=switzer@200,300,400,500,600,700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            /* Cores da Marca */
+            --woca-orange: #FF8800;
+            --woca-orange-glow: rgba(255, 136, 0, 0.4);
+            
+            /* Variáveis do Modo Escuro (Default) */
+            --bg-color: #050505;
+            
+            /* Glass Panel */
+            --card-bg: rgba(20, 20, 20, 0.6); /* Mais translúcido para ver as luzes */
+            --card-border: rgba(255, 255, 255, 0.1);
+            --card-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            
+            /* Typography */
+            --text-primary: #ffffff;
+            --text-secondary: #a3a3a3;
+            --text-faint: rgba(255, 255, 255, 0.2);
+            
+            /* Inputs & Tables */
+            --input-bg: rgba(0, 0, 0, 0.3);
+            --table-border: rgba(255, 255, 255, 0.05);
+            --table-hover: rgba(255, 136, 0, 0.1);
+            --th-bg: rgba(255, 136, 0, 0.05);
+            
+            /* File Button */
+            --file-btn-bg: rgba(255, 255, 255, 0.1);
+            --file-btn-text: #fff;
+            
+            /* Navbar */
+            --nav-bg: rgba(5, 5, 5, 0.7);
+        }
+
+        /* Variáveis do Modo Claro */
+        body.light-mode {
+            --bg-color: #f8f9fa;
+            
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-border: rgba(0, 0, 0, 0.08);
+            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            
+            --text-primary: #18181b;
+            --text-secondary: #71717a;
+            --text-faint: rgba(0, 0, 0, 0.1);
+            
+            --input-bg: #ffffff;
+            --table-border: rgba(0, 0, 0, 0.05);
+            --table-hover: rgba(255, 136, 0, 0.08);
+            --th-bg: rgba(255, 136, 0, 0.15);
+            
+            --file-btn-bg: rgba(0, 0, 0, 0.05);
+            --file-btn-text: #18181b;
+            
+            --nav-bg: rgba(255, 255, 255, 0.8);
+        }
+
+        body {
+            font-family: 'Switzer', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+            transition: background-color 0.5s ease;
+        }
+
+        /* Ambient Lights (Background Orbs) - OTIMIZADO */
+        .ambient-light {
+            position: fixed;
+            border-radius: 50%;
+            /* Reduzido blur para performance, mas mantendo visual */
+            filter: blur(80px); 
+            z-index: -1;
+            opacity: 0.6;
+            /* Will-change avisa o browser para otimizar */
+            will-change: transform, opacity;
+            /* TranslateZ força GPU acceleration */
+            transform: translateZ(0); 
+            animation: float 15s ease-in-out infinite; /* Animação mais lenta para pesar menos */
+            pointer-events: none; /* Garante que não interfere no scroll/clique */
+        }
+        
+        /* Light 1: Woca Orange Top Left */
+        .light-1 {
+            top: -10%;
+            left: -10%;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, var(--woca-orange-glow) 0%, transparent 70%);
+            animation-delay: 0s;
+        }
+        
+        /* Light 2: Deep Purple/Secondary Bottom Right */
+        .light-2 {
+            bottom: -20%;
+            right: -10%;
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(circle, rgba(100, 50, 255, 0.15) 0%, transparent 70%);
+            animation-delay: -5s;
+        }
+
+        /* Hide ambient lights in Light Mode for cleaner look */
+        body.light-mode .ambient-light {
+            opacity: 0;
+            display: none; /* Remove do render tree no modo claro */
+        }
+
+        @keyframes float {
+            0% { transform: translate3d(0, 0, 0) scale(1); }
+            50% { transform: translate3d(20px, 30px, 0) scale(1.05); } /* Scale menor */
+            100% { transform: translate3d(0, 0, 0) scale(1); }
+        }
+
+        /* Navbar Glassmorphism - OTIMIZADO */
+        nav.glass-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 50;
+            background: var(--nav-bg);
+            /* Otimização de glass */
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--table-border);
+            transition: background 0.3s ease;
+            transform: translateZ(0); /* GPU */
+        }
+
+        /* Main Container padding to account for fixed nav */
+        main {
+            padding-top: 100px;
+            padding-bottom: 60px;
+        }
+
+        /* Cards with Hover Effect - OTIMIZADO */
+        .glass-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            box-shadow: var(--card-shadow);
+            /* Backdrop filter em muitos elementos causa lag no scroll. 
+               Reduzi ou removi dos cards internos se houver sobreposição, 
+               mas aqui mantive pois é essencial para o visual. 
+               Adicionei will-change no hover. */
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+            transform: translateZ(0); /* GPU */
+        }
+
+        .glass-panel:hover {
+            transform: translateY(-4px) translateZ(0);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 136, 0, 0.3); 
+        }
+        
+        body.light-mode .glass-panel:hover {
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+            border-color: rgba(0, 0, 0, 0.15);
+        }
+
+        /* Inputs */
+        .tech-input {
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .tech-input:focus {
+            border-color: var(--woca-orange);
+            outline: none;
+            box-shadow: 0 0 15px var(--woca-orange-glow);
+        }
+        .tech-input::file-selector-button {
+            margin-right: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            border: 0;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background-color: var(--file-btn-bg);
+            color: var(--file-btn-text);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .tech-input::file-selector-button:hover {
+            background-color: var(--woca-orange);
+            color: #fff;
+        }
+
+        /* Buttons */
+        .accent-btn {
+            background: var(--woca-orange);
+            color: white; 
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            position: relative;
+            overflow: hidden;
+            transform: translateZ(0);
+        }
+        .accent-btn::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(255,255,255,0.2), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .accent-btn:hover::after {
+            opacity: 1;
+        }
+        .accent-btn:hover {
+            transform: translateY(-1px) translateZ(0);
+            box-shadow: 0 0 25px var(--woca-orange-glow);
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--card-border);
+            color: var(--text-secondary);
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .theme-toggle:hover {
+            color: var(--woca-orange);
+            background: rgba(255, 136, 0, 0.1);
+            border-color: var(--woca-orange);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2); 
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--woca-orange); 
+        }
+
+        /* Tables */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 0.85rem;
+        }
+        th {
+            background-color: var(--th-bg);
+            color: var(--woca-orange);
+            font-weight: 600;
+            text-align: left;
+            padding: 14px; 
+            border-bottom: 1px solid var(--table-border);
+            white-space: nowrap; 
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.08em;
+        }
+        td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--table-border);
+            color: var(--text-primary);
+        }
+        tr:hover td {
+            background-color: var(--table-hover);
+        }
+        
+        /* Heatmap */
+        .cohort-cell {
+            text-align: center;
+            border-left: 1px solid var(--table-border);
+            font-size: 0.8rem;
+            min-width: 32px;
+            font-weight: 600;
+        }
+        .cohort-header {
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--woca-orange); 
+        }
+        #tableVelocidade th:first-child,
+        #tableVelocidade td:first-child {
+            width: 1%; 
+            white-space: nowrap;
+            padding-right: 24px; 
+            text-align: right;
+            color: var(--text-secondary);
+            font-weight: 600;
+            border-right: 1px solid var(--table-border);
+        }
+        
+        .download-btn {
+            color: var(--woca-orange);
+            background-color: rgba(255, 136, 0, 0.1);
+            border: 1px solid rgba(255, 136, 0, 0.2);
+        }
+        .download-btn:hover {
+            background-color: rgba(255, 136, 0, 0.2);
+        }
+        
+        /* Utilities */
+        .text-green-400 { color: #22c55e; } /* Emerald 500 equivalent usually */
+        body:not(.light-mode) .text-green-400 { color: #4ade80; } /* Lighter green for dark mode */
+        
+        .logo-img {
+            height: 32px;
+            width: auto;
+            margin-right: 12px;
+        }
+    </style>
+</head>
+<body class="px-6 md:px-10">
+
+    <!-- Ambient Lights (Background) -->
+    <div class="ambient-light light-1"></div>
+    <div class="ambient-light light-2"></div>
+
+    <!-- Fixed Navbar -->
+    <nav class="glass-nav px-6 md:px-10 py-4">
+        <div class="flex flex-row justify-between items-center max-w-[1600px] mx-auto">
+            <div class="flex items-center">
+                <!-- Woca Logo -->
+                <img src="https://i.postimg.cc/nLD5MpPn/Logo-Woca-Icone.png" alt="Woca Logo" class="logo-img">
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold tracking-tight leading-none" style="color: var(--text-primary);">Relatórios <span class="accent-text">.WOCA</span></h1>
+                    <p class="text-xs font-light tracking-wide opacity-70" style="color: var(--text-primary);">Intelligence Dashboard</p>
+                </div>
+            </div>
+            
+            <div class="flex gap-4 items-center">
+                <!-- Theme Toggle Button -->
+                <button onclick="toggleTheme()" class="theme-toggle" title="Alternar Tema">
+                    <i data-lucide="sun" id="themeIcon" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-[1600px] mx-auto">
+        <!-- Controls Section -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10">
+            
+            <!-- File Upload Zone -->
+            <div class="lg:col-span-8 glass-panel p-8 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <i data-lucide="upload-cloud" class="w-32 h-32" style="color: var(--text-primary);"></i>
+                </div>
+                
+                <h2 class="text-lg font-medium mb-6 flex items-center gap-2" style="color: var(--text-primary);">
+                    <i data-lucide="database" class="w-5 h-5 accent-text"></i>
+                    Input de Dados (CSV)
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs uppercase tracking-wide mb-2 opacity-70" style="color: var(--text-primary);">Transações</label>
+                        <input type="file" id="fileTransacoes" accept=".csv" class="tech-input w-full rounded-lg p-3 text-sm">
+                        <p id="statusTransacoes" class="text-xs mt-2" style="color: var(--text-secondary);">Aguardando arquivo...</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase tracking-wide mb-2 opacity-70" style="color: var(--text-primary);">Usuários</label>
+                        <input type="file" id="fileUsuarios" accept=".csv" class="tech-input w-full rounded-lg p-3 text-sm">
+                        <p id="statusUsuarios" class="text-xs mt-2" style="color: var(--text-secondary);">Aguardando arquivo...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Date Control -->
+            <div class="lg:col-span-4 glass-panel p-8 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-lg font-medium mb-6 flex items-center gap-2" style="color: var(--text-primary);">
+                        <i data-lucide="calendar-clock" class="w-5 h-5 accent-text"></i>
+                        Período de Análise
+                    </h2>
+                    <label class="block text-xs uppercase tracking-wide mb-2 opacity-70" style="color: var(--text-primary);">Domingo (Início)</label>
+                    <input type="date" id="startDate" class="tech-input w-full rounded-lg p-3 mb-2" style="color: var(--text-primary);">
+                    <p id="weekRangeDisplay" class="text-xs accent-text h-4 font-mono"></p>
+                </div>
+                
+                <button onclick="processData()" class="accent-btn w-full rounded-lg py-4 mt-4 flex justify-center items-center gap-2">
+                    <i data-lucide="cpu" class="w-4 h-4"></i>
+                    PROCESSAR DADOS
+                </button>
+            </div>
+        </section>
+
+        <!-- Results Grid (Bento) -->
+        <div id="resultsArea" class="hidden grid-cols-1 xl:grid-cols-2 gap-6">
+            
+            <!-- ROW 1 -->
+            <!-- Card: Validados -->
+            <div class="glass-panel p-0 flex flex-col h-auto">
+                <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
+                    <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="check-circle" class="w-4 h-4 text-green-400"></i> Validados (Tendência 8 Semanas)</h3>
+                    <button onclick="copyTable('tableValidados')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
+                </div>
+                <div class="p-6 overflow-x-auto custom-scroll">
+                    <div id="renderValidados"></div>
+                </div>
+            </div>
+
+            <!-- Card: Aquisição Geral -->
+            <div class="glass-panel p-0 flex flex-col h-auto">
+                <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
+                    <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="trending-up" class="w-4 h-4 accent-text"></i> Aquisição (Medium)</h3>
+                    <button onclick="copyTable('tableAquisicao')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
+                </div>
+                <div class="p-6 overflow-x-auto custom-scroll">
+                    <div id="renderAquisicao"></div>
+                </div>
+            </div>
+
+            <!-- ROW 2 -->
+            <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
+                <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
+                    <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="user-check" class="w-4 h-4 text-green-400"></i> Conversão de Leads em Clientes (Detalhado)</h3>
+                    <button onclick="copyTable('tableConversao')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar Tabela</button>
+                </div>
+                <div class="p-6 overflow-x-auto custom-scroll">
+                    <div id="renderConversao"></div>
+                </div>
+            </div>
+
+            <!-- ROW 3 -->
+            <!-- Distribuicao Vendas -->
+            <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
+                <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
+                    <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="shopping-cart" class="w-4 h-4 text-green-400"></i> Distribuição de Vendas (Novos Clientes)</h3>
+                    <button onclick="copyTable('tableDistVendas')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
+                </div>
+                <div class="p-6 overflow-x-auto custom-scroll">
+                    <div id="renderDistVendas"></div>
+                </div>
+            </div>
+
+            <!-- Card: Distribuição Planos -->
+            <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
+                <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
+                    <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="credit-card" class="w-4 h-4 text-purple-400"></i> Distribuição Planos (Validados)</h3>
+                    <button onclick="copyTable('tablePlanos')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
+                </div>
+                <div class="p-6 overflow-x-auto custom-scroll">
+                    <div id="renderPlanos"></div>
+                </div>
+            </div>
+
+            <!-- ROW 4 -->
+            <!-- Card: Distribuição Profissões -->
+            <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
+                <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
+                    <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="briefcase" class="w-4 h-4 text-blue-400"></i> Por Profissão (Dia)</h3>
+                    <button onclick="copyTable('tableProfissao')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
+                </div>
+                <div class="p-6 overflow-x-auto custom-scroll">
+                    <div id="renderProfissao"></div>
+                </div>
+            </div>
+
+            <!-- Card: Distribuição Campanhas -->
+            <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
+                <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
+                    <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="megaphone" class="w-4 h-4 text-pink-400"></i> Por Campanha (Dia)</h3>
+                    <button onclick="copyTable('tableCampanha')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
+                </div>
+                <div class="p-6 overflow-x-auto custom-scroll">
+                    <div id="renderCampanha"></div>
+                </div>
+            </div>
+
+            <!-- ROW 5 -->
+            <!-- Card: Histórico Mensal -->
+            <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
+                <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
+                    <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="calendar-days" class="w-4 h-4 accent-text"></i> Conversão Acumulada do Mês</h3>
+                    <button onclick="copyTable('tableHistorico')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
+                </div>
+                <div class="p-6 overflow-x-auto custom-scroll">
+                    <div id="renderHistorico"></div>
+                </div>
+            </div>
+
+            <!-- Card: Velocidade de Conversão (Cohort) -->
+            <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
+                <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
+                    <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="timer" class="w-4 h-4 text-cyan-400"></i> Velocidade de Conversão (Dias)</h3>
+                    <div class="flex gap-2">
+                        <button onclick="downloadImage('tableVelocidade', 'Woca_Cohort.png')" class="download-btn text-xs px-3 py-1.5 rounded flex items-center gap-1 transition-all font-medium">
+                            <i data-lucide="image-down" class="w-3 h-3"></i> Baixar Imagem
+                        </button>
+                        <button onclick="copyTable('tableVelocidade')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
+                    </div>
+                </div>
+                <div class="p-6 overflow-x-auto custom-scroll" id="containerVelocidade">
+                    <div id="renderVelocidade"></div>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- Script Logic -->
+    <script>
+        lucide.createIcons();
+        
+        let rawTransacoes = [];
+        let rawUsuarios = [];
+
+        // Theme Toggle Logic
+        function toggleTheme() {
+            const body = document.body;
+            const icon = document.getElementById('themeIcon');
+            
+            body.classList.toggle('light-mode');
+            
+            // Re-render if data exists to apply theme specific logic
+            if (rawTransacoes.length > 0 && rawUsuarios.length > 0 && document.getElementById('startDate').value) {
+                processData();
+            }
+            
+            if (body.classList.contains('light-mode')) {
+                icon.setAttribute('data-lucide', 'moon');
+            } else {
+                icon.setAttribute('data-lucide', 'sun');
+            }
+            lucide.createIcons();
+        }
+
+        // DOM Elements
+        const fileTransacoes = document.getElementById('fileTransacoes');
+        const fileUsuarios = document.getElementById('fileUsuarios');
+        const startDateInput = document.getElementById('startDate');
+        
+        fileTransacoes.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    rawTransacoes = results.data;
+                    document.getElementById('statusTransacoes').innerText = `Carregado: ${results.data.length} linhas`;
+                    document.getElementById('statusTransacoes').classList.add('text-green-400');
+                }
+            });
+        });
+
+        fileUsuarios.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    rawUsuarios = results.data;
+                    document.getElementById('statusUsuarios').innerText = `Carregado: ${results.data.length} linhas`;
+                    document.getElementById('statusUsuarios').classList.add('text-green-400');
+                }
+            });
+        });
+
+        // --- 2. Date Helpers ---
+        startDateInput.addEventListener('change', (e) => {
+            const start = new Date(e.target.value + 'T00:00:00'); 
+            const end = new Date(start);
+            end.setDate(end.getDate() + 6);
+            
+            const fmt = d => d.toLocaleDateString('pt-BR');
+            document.getElementById('weekRangeDisplay').innerText = `Análise: ${fmt(start)} a ${fmt(end)}`;
+        });
+
+        function parseDateBR(dateStr) {
+            if(!dateStr) return null;
+            const parts = dateStr.split('/');
+            if(parts.length !== 3) return null;
+            return new Date(parts[2], parts[1] - 1, parts[0]);
+        }
+
+        function processData() {
+            if (rawTransacoes.length === 0 || rawUsuarios.length === 0) {
+                alert("Por favor, faça upload dos dois arquivos CSV.");
+                return;
+            }
+            if (!startDateInput.value) {
+                alert("Por favor, selecione a data de início da semana (Domingo).");
+                return;
+            }
+
+            const startWeek = new Date(startDateInput.value + 'T00:00:00');
+            const endWeek = new Date(startWeek);
+            endWeek.setDate(endWeek.getDate() + 6);
+            endWeek.setHours(23, 59, 59, 999);
+
+            const startPrevWeek = new Date(startWeek);
+            startPrevWeek.setDate(startPrevWeek.getDate() - 7);
+            const endPrevWeek = new Date(startWeek);
+            endPrevWeek.setDate(endPrevWeek.getDate() - 1); 
+
+            document.getElementById('resultsArea').classList.remove('hidden');
+            document.getElementById('resultsArea').classList.add('grid');
+
+            generateAquisicao(startWeek, endWeek, startPrevWeek, endPrevWeek);
+            generateValidados(startWeek); 
+            generatePivots(startWeek, endWeek, 'profissao', 'renderProfissao', 'tableProfissao', 'Profissão');
+            generatePivots(startWeek, endWeek, 'utm_campaign', 'renderCampanha', 'tableCampanha', 'Campanha');
+            generateConversao(startWeek, endWeek);
+            generateDistribuicaoVendas(startWeek, endWeek); 
+            generatePlanos(startWeek, endWeek);
+            generateHistoricoMensal(startWeek);
+        }
+
+        function isUserValid(u) {
+            const v = String(u['validado']).toLowerCase().trim();
+            return v === 'true' || v === '1' || v === 'sim';
+        }
+
+        function generateAquisicao(currentStart, currentEnd, prevStart, prevEnd) {
+            const counts = {}; 
+
+            rawUsuarios.forEach(u => {
+                const d = parseDateBR(u['data_criacao_usuario (Data)']);
+                if (!d) return;
+                if (!isUserValid(u)) return; 
+
+                const medium = u['utm_medium'] || '(not set)';
+                
+                if (!counts[medium]) counts[medium] = { current: 0, prev: 0 };
+
+                if (d >= currentStart && d <= currentEnd) {
+                    counts[medium].current++;
+                } else if (d >= prevStart && d <= prevEnd) {
+                    counts[medium].prev++;
+                }
+            });
+
+            const rows = Object.keys(counts).map(m => {
+                const c = counts[m].current;
+                const p = counts[m].prev;
+                let variacao = '-';
+                if (p > 0) {
+                    const diff = ((c - p) / p) * 100;
+                    variacao = diff.toFixed(2) + '%';
+                } else if (c > 0 && p === 0) {
+                    variacao = 'Novo';
+                }
+
+                return { medium: m, current: c, prev: p, var: variacao };
+            }).filter(r => r.current > 0 || r.prev > 0)
+              .sort((a,b) => b.current - a.current);
+
+            let html = `<table id="tableAquisicao"><thead><tr><th>Medium</th><th>Semana Anterior</th><th>Semana Atual</th><th>Variação</th></tr></thead><tbody>`;
+            rows.forEach(r => {
+                const colorVar = r.var.includes('-') ? 'text-red-400' : (r.var === 'Novo' ? 'text-blue-400' : 'text-green-400');
+                html += `<tr><td>${r.medium}</td><td>${r.prev}</td><td>${r.current}</td><td class="${colorVar}">${r.var}</td></tr>`;
+            });
+            html += `</tbody></table>`;
+            document.getElementById('renderAquisicao').innerHTML = html;
+        }
+
+        function generateValidados(currentWeekStart) {
+             const weeksList = [];
+             
+             for (let i = 0; i < 8; i++) {
+                 const wStart = new Date(currentWeekStart);
+                 wStart.setDate(wStart.getDate() - (7 * i));
+                 
+                 const wEnd = new Date(wStart);
+                 wEnd.setDate(wEnd.getDate() + 6);
+                 wEnd.setHours(23, 59, 59, 999);
+                 
+                 weeksList.push({ start: wStart, end: wEnd });
+             }
+
+             weeksList.reverse();
+
+             let html = `<table id="tableValidados"><thead><tr><th>Semana</th><th>Validados</th><th>%</th><th>Não Validados</th><th>%</th><th>Total</th></tr></thead><tbody>`;
+             
+             let rowsAdded = 0;
+
+             weeksList.forEach(w => {
+                 let validados = 0;
+                 let naoValidados = 0;
+
+                 rawUsuarios.forEach(u => {
+                    const d = parseDateBR(u['data_criacao_usuario (Data)']);
+                    if (d && d >= w.start && d <= w.end) {
+                        if (isUserValid(u)) {
+                            validados++;
+                        } else {
+                            naoValidados++;
+                        }
+                    }
+                 });
+
+                 const total = validados + naoValidados;
+                 
+                 if (total > 0) {
+                     const percVal = ((validados/total)*100).toFixed(2);
+                     const percNao = ((naoValidados/total)*100).toFixed(2);
+                     const fmtDate = d => d.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'});
+                     
+                     html += `<tr>
+                        <td>${fmtDate(w.start)} a ${fmtDate(w.end)}</td>
+                        <td class="text-green-400 font-medium">${validados}</td>
+                        <td>${percVal}%</td>
+                        <td class="text-gray-400" style="color: var(--text-secondary);">${naoValidados}</td>
+                        <td>${percNao}%</td>
+                        <td class="font-bold" style="color: var(--text-primary);">${total}</td>
+                     </tr>`;
+                     rowsAdded++;
+                 }
+             });
+
+             if(rowsAdded === 0) {
+                 html += `<tr><td colspan="6" class="text-center py-4" style="color: var(--text-secondary);">Nenhum dado encontrado para o período.</td></tr>`;
+             }
+
+             html += `</tbody></table>`;
+             document.getElementById('renderValidados').innerHTML = html;
+        }
+
+        function generatePivots(start, end, keyColumn, targetDiv, tableId, label) {
+            const days = [];
+            let curr = new Date(start);
+            while (curr <= end) {
+                days.push(new Date(curr));
+                curr.setDate(curr.getDate() + 1);
+            }
+
+            const matrix = {}; 
+            
+            const profissoesAlvo = [
+                'Eletricista', 
+                'Estudante', 
+                'Eletrotécnico', 
+                'Engenheiro Eletricista', 
+                'Outro', 
+                'Engenheiro Civil', 
+                'Arquiteto'
+            ];
+
+            rawUsuarios.forEach(u => {
+                const d = parseDateBR(u['data_criacao_usuario (Data)']);
+                if (d && d >= start && d <= end) {
+                    if (!isUserValid(u)) return;
+                    let key = u[keyColumn] || '(vazio)';
+                    if (keyColumn === 'profissao') {
+                        const profissaoLimpa = key.trim();
+                        const match = profissoesAlvo.find(p => p.toLowerCase() === profissaoLimpa.toLowerCase());
+                        if (match) { key = match; } else { key = 'Profissão customizada'; }
+                    }
+                    const dateKey = d.toLocaleDateString('pt-BR'); 
+                    if (!matrix[key]) matrix[key] = { total: 0 };
+                    if (!matrix[key][dateKey]) matrix[key][dateKey] = 0;
+                    matrix[key][dateKey]++;
+                    matrix[key].total++;
+                }
+            });
+
+            let sortedKeys;
+            if (keyColumn === 'profissao') {
+                sortedKeys = Object.keys(matrix).sort((a, b) => {
+                    const idxA = profissoesAlvo.indexOf(a);
+                    const idxB = profissoesAlvo.indexOf(b);
+                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                    if (idxA !== -1) return -1;
+                    if (idxB !== -1) return 1;
+                    return a.localeCompare(b);
+                });
+            } else {
+                sortedKeys = Object.keys(matrix).sort((a,b) => matrix[b].total - matrix[a].total);
+            }
+
+            let html = `<table id="${tableId}"><thead><tr><th>${label}</th>`;
+            days.forEach(d => html += `<th>${d.toLocaleDateString('pt-BR')}</th>`);
+            html += `<th>Total</th></tr></thead><tbody>`;
+
+            sortedKeys.forEach(k => {
+                html += `<tr><td>${k}</td>`;
+                days.forEach(d => {
+                    const val = matrix[k][d.toLocaleDateString('pt-BR')] || 0;
+                    html += `<td>${val}</td>`;
+                });
+                html += `<td class="font-bold" style="color: var(--text-primary);">${matrix[k].total}</td></tr>`;
+            });
+            
+            html += `<tr style="background-color: var(--table-hover); font-weight: bold; color: var(--woca-orange);"><td>TOTAL DO DIA</td>`;
+            let weekTotal = 0;
+            days.forEach(d => {
+                const dKey = d.toLocaleDateString('pt-BR');
+                let daySum = 0;
+                sortedKeys.forEach(k => {
+                    daySum += (matrix[k][dKey] || 0);
+                });
+                weekTotal += daySum;
+                html += `<td>${daySum}</td>`;
+            });
+            html += `<td>${weekTotal}</td></tr>`;
+
+            html += `</tbody></table>`;
+            document.getElementById(targetDiv).innerHTML = html;
+        }
+
+        function generateConversao(start, end) {
+            const transMap = {}; 
+            rawTransacoes.forEach(t => {
+                const email = t['username'];
+                const plano = t['Plano'] ? t['Plano'].toLowerCase() : '';
+                const ignore = ['trial', 'trial_form', 'gratuito', '-', ''];
+                if (!ignore.includes(plano)) {
+                    if (!transMap[email]) transMap[email] = [];
+                    transMap[email].push(t);
+                }
+            });
+
+            const seenConversions = new Set();
+            const conversions = [];
+
+            rawUsuarios.forEach(u => {
+                const dCreated = parseDateBR(u['data_criacao_usuario (Data)']);
+                if (dCreated && dCreated >= start && dCreated <= end) {
+                    if (!isUserValid(u)) return;
+                    const email = u['username'];
+                    const matchTrans = transMap[email];
+                    if (matchTrans && matchTrans.length > 0) {
+                        matchTrans.forEach(trans => {
+                            const dTrans = parseDateBR(trans['data_transacao (Data)']);
+                            if (dTrans && dTrans >= start && dTrans <= end) {
+                                const uniqueKey = `${email}|${trans['Plano']}|${trans['valor']}|${trans['data_transacao (Data)']}`;
+                                if (seenConversions.has(uniqueKey)) return; 
+                                seenConversions.add(uniqueKey);
+                                conversions.push({
+                                    email: email,
+                                    data_transacao: trans['data_transacao (Data)'],
+                                    plano: trans['Plano'],
+                                    source: u['utm_medium'], medium: u['utm_medium'], campaign: u['utm_campaign'],
+                                    data_cadastro: u['data_criacao_usuario (Data)'], valor: trans['valor']
+                                });
+                            }
+                        });
+                    }
+                }
+            });
+
+            let html = `<table id="tableConversao"><thead><tr>
+                    <th>Email</th><th>Data Transação</th><th>Plano</th><th>Origem (Medium)</th>
+                    <th>Campanha</th><th>Data Cadastro</th><th>Valor</th>
+                </tr></thead><tbody>`;
+            
+            if (conversions.length === 0) {
+                html += `<tr><td colspan="7" class="text-center py-4" style="color: var(--text-secondary);">Nenhuma conversão direta encontrada para cadastros desta semana.</td></tr>`;
+            } else {
+                conversions.forEach(c => {
+                    html += `<tr>
+                        <td class="text-xs" style="color: var(--text-secondary);">${c.email}</td>
+                        <td>${c.data_transacao}</td><td>${c.plano}</td><td>${c.medium || '-'}</td>
+                        <td>${c.campaign || '-'}</td><td>${c.data_cadastro}</td>
+                        <td class="text-green-400">R$ ${c.valor}</td>
+                    </tr>`;
+                });
+            }
+            html += `</tbody></table>`;
+            html += `<div class="text-xs mt-2 text-right" style="color: var(--text-secondary);">Registros exibidos: ${conversions.length}</div>`;
+            document.getElementById('renderConversao').innerHTML = html;
+        }
+
+        function generateDistribuicaoVendas(start, end) {
+            const transMap = {}; 
+            rawTransacoes.forEach(t => {
+                const email = t['username'];
+                const plano = t['Plano'] ? t['Plano'].toLowerCase() : '';
+                const ignore = ['trial', 'trial_form', 'gratuito', '-', ''];
+                if (!ignore.includes(plano)) {
+                    if (!transMap[email]) transMap[email] = [];
+                    transMap[email].push(t);
+                }
+            });
+
+            const seenConversions = new Set();
+            const counts = {};
+
+            rawUsuarios.forEach(u => {
+                const dCreated = parseDateBR(u['data_criacao_usuario (Data)']);
+                if (dCreated && dCreated >= start && dCreated <= end) {
+                    if (!isUserValid(u)) return;
+                    const email = u['username'];
+                    const matchTrans = transMap[email];
+                    if (matchTrans && matchTrans.length > 0) {
+                        matchTrans.forEach(trans => {
+                            const dTrans = parseDateBR(trans['data_transacao (Data)']);
+                            if (dTrans && dTrans >= start && dTrans <= end) {
+                                const uniqueKey = `${email}|${trans['Plano']}|${trans['valor']}|${trans['data_transacao (Data)']}`;
+                                if (seenConversions.has(uniqueKey)) return; 
+                                seenConversions.add(uniqueKey);
+                                const soldPlan = trans['Plano'];
+                                counts[soldPlan] = (counts[soldPlan] || 0) + 1;
+                            }
+                        });
+                    }
+                }
+            });
+
+            const plans = Object.keys(counts).sort((a, b) => {
+                const getScore = (p) => {
+                    const low = p.toLowerCase();
+                    if (low.includes('advanced') || low.includes('pro')) return 2; 
+                    return 0; 
+                };
+                const scoreA = getScore(a);
+                const scoreB = getScore(b);
+                if (scoreA !== scoreB) return scoreB - scoreA;
+                return a.localeCompare(b);
+            });
+            
+            let html = `<table id="tableDistVendas"><thead><tr><th>Plano</th>`;
+            plans.forEach(p => {
+                const isPaid = p.toLowerCase().includes('pro') || p.toLowerCase().includes('advanced');
+                const classHeader = isPaid ? 'text-green-400' : 'text-gray-400';
+                html += `<th class="${classHeader}">${p}</th>`;
+            });
+            html += `</tr></thead><tbody><tr><td>Quantidade</td>`;
+            
+            plans.forEach(p => {
+                html += `<td>${counts[p]}</td>`;
+            });
+            html += `</tr></tbody></table>`;
+            document.getElementById('renderDistVendas').innerHTML = html;
+        }
+
+        function generatePlanos(start, end) {
+            const counts = {};
+            rawUsuarios.forEach(u => {
+                const d = parseDateBR(u['data_criacao_usuario (Data)']);
+                if (d && d >= start && d <= end) {
+                    if (!isUserValid(u)) return;
+                    let plano = u['current_plan_detail'];
+                    if (!plano || plano.trim() === '-' || plano.trim() === '') {
+                        plano = 'Gratuito';
+                    }
+                    counts[plano] = (counts[plano] || 0) + 1;
+                }
+            });
+
+            const plans = Object.keys(counts).sort((a, b) => {
+                const getScore = (p) => {
+                    const low = p.toLowerCase();
+                    if (low.includes('advanced') || low.includes('pro')) return 2; 
+                    return 0; 
+                };
+                const scoreA = getScore(a);
+                const scoreB = getScore(b);
+                if (scoreA !== scoreB) return scoreB - scoreA;
+                return a.localeCompare(b);
+            });
+            
+            let html = `<table id="tablePlanos"><thead><tr><th>Plano</th>`;
+            plans.forEach(p => {
+                const isPaid = p.toLowerCase().includes('pro') || p.toLowerCase().includes('advanced');
+                const classHeader = isPaid ? 'text-green-400' : 'text-gray-400';
+                html += `<th class="${classHeader}">${p}</th>`;
+            });
+            html += `</tr></thead><tbody><tr><td>Quantidade</td>`;
+            plans.forEach(p => {
+                html += `<td>${counts[p]}</td>`;
+            });
+            html += `</tr></tbody></table>`;
+            document.getElementById('renderPlanos').innerHTML = html;
+        }
+
+        function generateHistoricoMensal(currentWeekStart) {
+            const month = currentWeekStart.getMonth(); 
+            const year = currentWeekStart.getFullYear();
+            let iterator = new Date(year, month, 1);
+            while (iterator.getDay() !== 0) {
+                iterator.setDate(iterator.getDate() + 1);
+            }
+            
+            const weeksList = [];
+            const currentWeekEnd = new Date(currentWeekStart);
+            currentWeekEnd.setDate(currentWeekEnd.getDate() + 6);
+            currentWeekEnd.setHours(23, 59, 59, 999);
+
+            let safety = 0;
+            while (iterator <= currentWeekEnd && safety < 10) {
+                const wStart = new Date(iterator);
+                const wEnd = new Date(iterator);
+                wEnd.setDate(wEnd.getDate() + 6);
+                wEnd.setHours(23, 59, 59, 999);
+                weeksList.push({ start: wStart, end: wEnd });
+                iterator.setDate(iterator.getDate() + 7);
+                safety++;
+            }
+
+            let htmlHist = `<table id="tableHistorico"><thead>
+                <tr><th>Semana</th><th title="Conversão dentro da própria semana de cadastro">Imediata (Semana)</th><th title="Conversão acumulada até hoje">Total (Safra)</th></tr></thead><tbody>`;
+            
+            let htmlVel = `<table id="tableVelocidade"><thead><tr><th>Semana</th>`;
+            for(let i=0; i<=15; i++) {
+                htmlVel += `<th class="cohort-header text-center">${i}</th>`;
+            }
+            htmlVel += `</tr></thead><tbody>`;
+
+            const transMap = {}; 
+            rawTransacoes.forEach(t => {
+                const email = t['username'];
+                const plano = t['Plano'] ? t['Plano'].toLowerCase() : '';
+                const ignore = ['trial', 'trial_form', 'gratuito', '-', ''];
+                if (!ignore.includes(plano)) {
+                    if (!transMap[email]) transMap[email] = [];
+                    transMap[email].push(t);
+                }
+            });
+
+            // CHECK THEME for text color
+            const isLight = document.body.classList.contains('light-mode');
+            const cohortTextColor = isLight ? '#000000' : '#ffffff';
+
+            weeksList.forEach(w => {
+                const usersInWeek = rawUsuarios.filter(u => {
+                    const d = parseDateBR(u['data_criacao_usuario (Data)']);
+                    return d && d >= w.start && d <= w.end && isUserValid(u);
+                });
+
+                const totalUsers = usersInWeek.length;
+                let convertedSameWeek = 0;
+                let convertedTotal = 0;
+                const dailyCounts = new Array(16).fill(0);
+
+                usersInWeek.forEach(u => {
+                    const dCreated = parseDateBR(u['data_criacao_usuario (Data)']);
+                    const email = u['username'];
+                    const transactions = transMap[email];
+
+                    if (transactions) {
+                        const hasSameWeekTrans = transactions.some(t => {
+                            const dTrans = parseDateBR(t['data_transacao (Data)']);
+                            return dTrans && dTrans >= w.start && dTrans <= w.end;
+                        });
+                        if (hasSameWeekTrans) convertedSameWeek++;
+                        convertedTotal++;
+
+                        let earliestDate = null;
+                        transactions.forEach(t => {
+                            const dTrans = parseDateBR(t['data_transacao (Data)']);
+                            if (!earliestDate || dTrans < earliestDate) earliestDate = dTrans;
+                        });
+
+                        if (earliestDate) {
+                            const diffTime = Math.abs(earliestDate - dCreated);
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                            if (diffDays >= 0 && diffDays <= 15) {
+                                dailyCounts[diffDays]++;
+                            }
+                        }
+                    }
+                });
+
+                const conversionRateSame = totalUsers ? ((convertedSameWeek / totalUsers) * 100).toFixed(2) : "0.00";
+                const conversionRateTotal = totalUsers ? ((convertedTotal / totalUsers) * 100).toFixed(2) : "0.00";
+                const fmt = d => d.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'});
+                const weekLabel = `${fmt(w.start)} a ${fmt(w.end)}`;
+
+                htmlHist += `<tr><td>${weekLabel}</td><td class="accent-text font-bold">${conversionRateSame}%</td><td class="text-green-400 font-bold">${conversionRateTotal}%</td></tr>`;
+
+                const maxVal = Math.max(...dailyCounts);
+
+                htmlVel += `<tr><td style="white-space: nowrap; font-size: 0.75rem;">${weekLabel}</td>`;
+                
+                for(let i=0; i<=15; i++) {
+                    const val = dailyCounts[i];
+                    let bgStyle = '';
+                    if (val > 0) {
+                        const alpha = maxVal > 0 ? (val / maxVal) * 0.8 + 0.1 : 0.1;
+                        bgStyle = `background-color: rgba(255, 136, 0, ${alpha}); color: ${cohortTextColor}; font-weight: bold;`;
+                    } else {
+                        bgStyle = `color: var(--text-faint);`;
+                    }
+                    htmlVel += `<td class="cohort-cell" style="${bgStyle}">${val > 0 ? val : '-'}</td>`;
+                }
+                htmlVel += `</tr>`;
+            });
+
+            htmlHist += `</tbody></table>`;
+            htmlVel += `</tbody></table>`;
+
+            document.getElementById('renderHistorico').innerHTML = htmlHist;
+            document.getElementById('renderVelocidade').innerHTML = htmlVel;
+        }
+
+        function copyTable(tableId) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            const range = document.createRange();
+            range.selectNode(table);
+            window.getSelection().removeAllRanges(); 
+            window.getSelection().addRange(range); 
+            document.execCommand('copy'); 
+            window.getSelection().removeAllRanges();
+            alert('Tabela copiada! Agora cole no Notion (Ctrl+V).');
+        }
+
+        function downloadImage(tableId, filename) {
+            const tableElement = document.getElementById(tableId);
+            if (!tableElement) return;
+            const isLight = document.body.classList.contains('light-mode');
+            const bg = isLight ? '#ffffff' : '#0a0a0a'; // Updated dark bg to match var
+
+            html2canvas(tableElement, {
+                backgroundColor: bg, 
+                scale: 2 
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            }).catch(err => {
+                console.error("Erro ao gerar imagem:", err);
+                alert("Erro ao gerar imagem. Tente novamente.");
+            });
+        }
+    </script>
+</body>
+</html>
