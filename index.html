@@ -14,6 +14,9 @@
     <!-- html2canvas for PNG Download -->
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <!-- Switzer Font -->
     <link href="https://api.fontshare.com/v2/css?f[]=switzer@200,300,400,500,600,700&display=swap" rel="stylesheet">
     
@@ -22,70 +25,58 @@
 
     <style>
         :root {
-            /* Cores da Marca */
             --woca-orange: #FF8800;
             --woca-orange-glow: rgba(255, 136, 0, 0.4);
-            
-            /* Variáveis do Modo Escuro (Default) */
             --bg-color: #050505;
-            
-            /* Glass Panel */
             --card-bg: rgba(20, 20, 20, 0.7); 
             --card-border: rgba(255, 255, 255, 0.08);
             --card-shadow: 0 4px 24px rgba(0, 0, 0, 0.2); 
-            
-            /* Typography */
             --text-primary: #ffffff;
             --text-secondary: #a3a3a3;
             --text-faint: rgba(255, 255, 255, 0.2);
-            
-            /* Inputs & Tables */
             --input-bg: rgba(0, 0, 0, 0.3);
             --table-border: rgba(255, 255, 255, 0.05);
             --table-hover: rgba(255, 136, 0, 0.1);
             --th-bg: rgba(255, 136, 0, 0.05);
-            
-            /* File Button */
             --file-btn-bg: rgba(255, 255, 255, 0.1);
             --file-btn-text: #fff;
-            
-            /* Navbar */
             --nav-bg: rgba(5, 5, 5, 0.85); 
-            
-            /* Grids */
             --grid-color: rgba(255, 255, 255, 0.03);
-            
-            /* Tabs */
             --tab-inactive: rgba(255, 255, 255, 0.05);
             --tab-active-bg: rgba(255, 136, 0, 0.15);
             --tab-active-text: #FF8800;
+            
+            /* Dynamic Chart Colors (Dark Mode Default) */
+            --chart-blue: #60a5fa; /* blue-400 */
+            --chart-green: #4ade80; /* green-400 */
+            --chart-red: #f87171;   /* red-400 */
+            --chart-purple: #c084fc; /* purple-400 */
         }
 
-        /* Variáveis do Modo Claro */
         body.light-mode {
             --bg-color: #f8f9fa;
-            
             --card-bg: rgba(255, 255, 255, 0.9);
             --card-border: rgba(0, 0, 0, 0.06);
             --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-            
             --text-primary: #18181b;
             --text-secondary: #71717a;
             --text-faint: rgba(0, 0, 0, 0.1);
-            
             --input-bg: #ffffff;
             --table-border: rgba(0, 0, 0, 0.05);
             --table-hover: rgba(255, 136, 0, 0.08);
             --th-bg: rgba(255, 136, 0, 0.15);
-            
             --file-btn-bg: rgba(0, 0, 0, 0.05);
             --file-btn-text: #18181b;
-            
             --nav-bg: rgba(255, 255, 255, 0.9);
             --grid-color: rgba(0, 0, 0, 0.03);
-            
             --tab-inactive: rgba(0, 0, 0, 0.05);
             --tab-active-bg: rgba(255, 136, 0, 0.1);
+            
+            /* Dynamic Chart Colors (Light Mode - Darker for Contrast) */
+            --chart-blue: #2563eb; /* blue-600 */
+            --chart-green: #16a34a; /* green-600 */
+            --chart-red: #dc2626;   /* red-600 */
+            --chart-purple: #9333ea; /* purple-600 */
         }
 
         body {
@@ -96,286 +87,97 @@
             margin: 0;
             overflow-x: hidden;
             transition: background-color 0.3s ease;
-            
             background-image: 
                 radial-gradient(circle at 15% 20%, rgba(255, 136, 0, 0.06) 0%, transparent 40%),
                 radial-gradient(circle at 85% 80%, rgba(100, 50, 255, 0.06) 0%, transparent 40%),
                 linear-gradient(var(--grid-color) 1px, transparent 1px),
                 linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
-            
             background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
             background-attachment: fixed; 
         }
 
-        /* Navbar Glassmorphism */
         nav.glass-nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 50;
-            background: var(--nav-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--table-border);
-            transition: background 0.3s ease;
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 50;
+            background: var(--nav-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--table-border); transition: background 0.3s ease;
         }
 
-        main {
-            padding-top: 100px;
-            padding-bottom: 60px;
-        }
+        main { padding-top: 100px; padding-bottom: 60px; }
 
-        /* Cards */
         .glass-panel {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            box-shadow: var(--card-shadow);
-            backdrop-filter: blur(8px); 
-            -webkit-backdrop-filter: blur(8px);
-            border-radius: 12px;
-            transition: transform 0.2s ease, border-color 0.2s ease;
+            background: var(--card-bg); border: 1px solid var(--card-border);
+            box-shadow: var(--card-shadow); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            border-radius: 12px; transition: transform 0.2s ease, border-color 0.2s ease;
         }
+        .glass-panel:hover { border-color: rgba(255, 136, 0, 0.25); }
+        body.light-mode .glass-panel:hover { border-color: rgba(0, 0, 0, 0.15); }
 
-        .glass-panel:hover {
-            border-color: rgba(255, 136, 0, 0.25); 
-        }
-        
-        body.light-mode .glass-panel:hover {
-            border-color: rgba(0, 0, 0, 0.15);
-        }
-
-        /* Inputs */
         .tech-input {
-            background: var(--input-bg);
-            border: 1px solid var(--card-border);
-            color: var(--text-primary);
+            background: var(--input-bg); border: 1px solid var(--card-border); color: var(--text-primary);
             transition: border-color 0.2s ease;
         }
-        .tech-input:focus {
-            border-color: var(--woca-orange);
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(255, 136, 0, 0.1); 
-        }
+        .tech-input:focus { border-color: var(--woca-orange); outline: none; box-shadow: 0 0 0 2px rgba(255, 136, 0, 0.1); }
         .tech-input::file-selector-button {
-            margin-right: 1rem;
-            padding: 0.5rem 1rem;
-            border-radius: 0.375rem;
-            border: 0;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background-color: var(--file-btn-bg);
-            color: var(--file-btn-text);
-            cursor: pointer;
-            transition: background-color 0.2s;
+            margin-right: 1rem; padding: 0.5rem 1rem; border-radius: 0.375rem; border: 0;
+            font-size: 0.75rem; font-weight: 600; background-color: var(--file-btn-bg);
+            color: var(--file-btn-text); cursor: pointer; transition: background-color 0.2s;
         }
-        .tech-input::file-selector-button:hover {
-            background-color: var(--woca-orange);
-            color: #fff;
-        }
+        .tech-input::file-selector-button:hover { background-color: var(--woca-orange); color: #fff; }
+        .tech-input::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; opacity: 0.6; }
+        body.light-mode .tech-input::-webkit-calendar-picker-indicator { filter: invert(0); }
 
-        .tech-input::-webkit-calendar-picker-indicator {
-            filter: invert(1);
-            cursor: pointer;
-            opacity: 0.6;
-        }
-        body.light-mode .tech-input::-webkit-calendar-picker-indicator {
-            filter: invert(0);
-        }
+        .accent-text { color: var(--woca-orange); }
+        .accent-btn { background: var(--woca-orange); color: white; font-weight: 600; transition: opacity 0.2s; border: none; }
+        .accent-btn:hover { opacity: 0.9; }
 
-        .accent-text {
-            color: var(--woca-orange);
-        }
-
-        /* Buttons */
-        .accent-btn {
-            background: var(--woca-orange);
-            color: white; 
-            font-weight: 600;
-            transition: opacity 0.2s;
-            border: none;
-        }
-        .accent-btn:hover {
-            opacity: 0.9; 
-        }
-
-        /* Tab & Mode Buttons */
         .tab-btn {
-            background: var(--tab-inactive);
-            color: var(--text-secondary);
-            border: 1px solid var(--card-border);
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            background: var(--tab-inactive); color: var(--text-secondary); border: 1px solid var(--card-border);
+            padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 0.95rem;
+            transition: all 0.2s ease; cursor: pointer; display: flex; align-items: center; gap: 8px;
         }
-        .tab-btn:hover {
-            border-color: var(--woca-orange);
-            color: var(--text-primary);
-        }
-        .tab-btn.active {
-            background: var(--tab-active-bg);
-            color: var(--tab-active-text);
-            border-color: var(--woca-orange);
-            box-shadow: 0 0 15px rgba(255, 136, 0, 0.15);
-        }
+        .tab-btn:hover { border-color: var(--woca-orange); color: var(--text-primary); }
+        .tab-btn.active { background: var(--tab-active-bg); color: var(--tab-active-text); border-color: var(--woca-orange); box-shadow: 0 0 15px rgba(255, 136, 0, 0.15); }
         
-        /* Mode Switcher specifically */
-        .mode-container {
-            display: flex;
-            background: var(--input-bg);
-            padding: 4px;
-            border-radius: 10px;
-            border: 1px solid var(--card-border);
-            margin-right: 20px;
-        }
-        .mode-btn {
-            padding: 6px 16px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            color: var(--text-secondary);
-            transition: all 0.2s;
-            border: none;
-            background: transparent;
-        }
-        .mode-btn.active {
-            background-color: var(--woca-orange);
-            color: #fff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
+        .mode-container { display: flex; background: var(--input-bg); padding: 4px; border-radius: 10px; border: 1px solid var(--card-border); margin-right: 20px; }
+        .mode-btn { padding: 6px 16px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; color: var(--text-secondary); transition: all 0.2s; border: none; background: transparent; }
+        .mode-btn.active { background-color: var(--woca-orange); color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
 
-        /* Theme Toggle */
-        .theme-toggle {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--card-border);
-            color: var(--text-secondary);
-            padding: 8px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .theme-toggle:hover {
-            color: var(--woca-orange);
-            background: rgba(255, 136, 0, 0.1);
-            border-color: var(--woca-orange);
-        }
+        .theme-toggle { background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); color: var(--text-secondary); padding: 8px; border-radius: 50%; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
+        .theme-toggle:hover { color: var(--woca-orange); background: rgba(255, 136, 0, 0.1); border-color: var(--woca-orange); }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(128, 128, 128, 0.3); 
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--woca-orange); 
-        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(128, 128, 128, 0.3); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--woca-orange); }
 
-        /* Tables */
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            /* Tamanho de fonte aumentado para leitura em tela compartilhada */
-            font-size: 0.95rem; 
-        }
-        th {
-            background-color: var(--th-bg);
-            color: var(--woca-orange);
-            font-weight: 600;
-            text-align: left;
-            padding: 14px; 
-            border-bottom: 1px solid var(--table-border);
-            /* Permite quebra de linha se necessário, mas mantém min-width */
-            white-space: normal; 
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            letter-spacing: 0.05em;
-        }
-        td {
-            padding: 12px 14px;
-            border-bottom: 1px solid var(--table-border);
-            /* COR FIXA PARA TODOS OS NÚMEROS */
-            color: var(--text-primary);
-            vertical-align: top;
-            /* Garante quebra de linha e preserva formatação */
-            white-space: pre-wrap; 
-        }
-        tr:hover td {
-            background-color: var(--table-hover);
-        }
-
-        /* Força largura mínima na primeira coluna para não espremer */
-        td:first-child, th:first-child {
-            min-width: 160px;
-            font-weight: 500;
-        }
+        table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+        th { background-color: var(--th-bg); color: var(--woca-orange); font-weight: 600; text-align: left; padding: 14px; border-bottom: 1px solid var(--table-border); white-space: normal; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
+        td { padding: 12px 14px; border-bottom: 1px solid var(--table-border); color: var(--text-primary); vertical-align: top; white-space: pre-wrap; }
+        tr:hover td { background-color: var(--table-hover); }
+        td:first-child, th:first-child { min-width: 160px; font-weight: 500; }
         
-        /* Heatmap */
-        .cohort-cell {
-            text-align: center;
-            border-left: 1px solid var(--table-border);
-            font-size: 0.85rem;
-            min-width: 35px;
-            font-weight: 600;
-            /* Text color is inherited from td (var(--text-primary)) */
-        }
-        .cohort-header {
-            text-align: center;
-            font-size: 0.7rem;
-            color: var(--woca-orange); 
-        }
-        #tableVelocidade th:first-child,
-        #tableVelocidade td:first-child {
-            width: 1%; 
-            white-space: nowrap;
-            padding-right: 24px; 
-            text-align: right;
-            color: var(--text-secondary);
-            font-weight: 600;
-            border-right: 1px solid var(--table-border);
-        }
+        .cohort-cell { text-align: center; border-left: 1px solid var(--table-border); font-size: 0.85rem; min-width: 35px; font-weight: 600; }
+        .cohort-header { text-align: center; font-size: 0.7rem; color: var(--woca-orange); }
+        #tableVelocidade th:first-child, #tableVelocidade td:first-child { width: 1%; white-space: nowrap; padding-right: 24px; text-align: right; color: var(--text-secondary); font-weight: 600; border-right: 1px solid var(--table-border); }
         
-        .download-btn {
-            color: var(--woca-orange);
-            background-color: rgba(255, 136, 0, 0.1);
-            border: 1px solid rgba(255, 136, 0, 0.2);
-        }
-        .download-btn:hover {
-            background-color: rgba(255, 136, 0, 0.2);
-        }
-        
-        .logo-img {
-            height: 32px;
-            width: auto;
-            margin-right: 12px;
-        }
+        .download-btn { color: var(--woca-orange); background-color: rgba(255, 136, 0, 0.1); border: 1px solid rgba(255, 136, 0, 0.2); }
+        .download-btn:hover { background-color: rgba(255, 136, 0, 0.2); }
+        .logo-img { height: 32px; width: auto; margin-right: 12px; }
 
-        /* Tab Content Transitions */
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-        .tab-content.active {
-            display: block; 
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .kpi-value { font-size: 2.5rem; font-weight: 700; line-height: 1; margin-bottom: 0.5rem; }
+        .kpi-label { font-size: 0.875rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+        .trend-up { color: #4ade80; }
+        .trend-down { color: #f87171; }
+        .trend-neutral { color: #a3a3a3; }
+        
+        /* Rank Card Specifics */
+        .rank-card {
+            border-left: 3px solid var(--woca-orange);
+            background: linear-gradient(90deg, rgba(255, 136, 0, 0.05) 0%, transparent 100%);
         }
     </style>
 </head>
@@ -385,7 +187,6 @@
     <nav class="glass-nav px-6 md:px-10 py-4">
         <div class="flex flex-row justify-between items-center max-w-[1600px] mx-auto">
             <div class="flex items-center">
-                <!-- Woca Logo -->
                 <img src="https://i.postimg.cc/nLD5MpPn/Logo-Woca-Icone.png" alt="Woca Logo" class="logo-img">
                 <div>
                     <h1 class="text-xl md:text-2xl font-bold tracking-tight leading-none" style="color: var(--text-primary);">Relatórios <span class="accent-text">.WOCA</span></h1>
@@ -394,12 +195,10 @@
             </div>
             
             <div class="flex gap-4 items-center">
-                <!-- Mode Switcher -->
                 <div class="mode-container hidden md:flex">
                     <button class="mode-btn active" id="btn-weekly" onclick="setReportMode('weekly')">Semanal</button>
                     <button class="mode-btn" id="btn-monthly" onclick="setReportMode('monthly')">Mensal</button>
                 </div>
-
                 <button onclick="toggleTheme()" class="theme-toggle" title="Alternar Tema">
                     <i data-lucide="sun" id="themeIcon" class="w-5 h-5"></i>
                 </button>
@@ -410,22 +209,15 @@
     <!-- Main Content -->
     <main class="max-w-[1600px] mx-auto">
         
-        <!-- Top Level Tab Navigation -->
         <div class="flex justify-center mb-8">
-            <div class="flex gap-4">
-                <button class="tab-btn active" onclick="switchTab('aquisicao')">
-                    <i data-lucide="users" class="w-5 h-5"></i> Aquisição
-                </button>
-                <button class="tab-btn" onclick="switchTab('email')">
-                    <i data-lucide="mail" class="w-5 h-5"></i> E-mail Marketing
-                </button>
-                <button class="tab-btn" onclick="switchTab('scoring')">
-                    <i data-lucide="target" class="w-5 h-5"></i> Lead Scoring
-                </button>
+            <div class="flex gap-4 flex-wrap justify-center">
+                <button class="tab-btn active" onclick="switchTab('aquisicao')"><i data-lucide="users" class="w-5 h-5"></i> Aquisição</button>
+                <button class="tab-btn" onclick="switchTab('email')"><i data-lucide="mail" class="w-5 h-5"></i> E-mail Marketing</button>
+                <button class="tab-btn" onclick="switchTab('scoring')"><i data-lucide="target" class="w-5 h-5"></i> Lead Scoring</button>
+                <button id="btn-dashboard" class="tab-btn hidden" onclick="switchTab('dashboard')"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard Mensal</button>
             </div>
         </div>
         
-        <!-- Mobile Mode Switcher -->
         <div class="flex md:hidden justify-center mb-6">
             <div class="mode-container">
                 <button class="mode-btn active" id="btn-weekly-m" onclick="setReportMode('weekly')">Semanal</button>
@@ -433,28 +225,142 @@
             </div>
         </div>
 
-        <!-- TAB 1: Aquisição Content -->
+        <!-- TAB: Dashboard -->
+        <div id="tab-dashboard" class="tab-content hidden">
+            <section class="glass-panel p-8 mb-10 border-l-4" style="border-left-color: var(--woca-orange);">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                    <h2 class="text-xl font-bold flex items-center gap-2" style="color: var(--text-primary);">
+                        <i data-lucide="layers" class="w-6 h-6 accent-text"></i> Central de Dados (Mensal)
+                    </h2>
+                    <div class="flex items-center gap-4 mt-4 md:mt-0 bg-opacity-10 rounded-lg p-2" style="background: var(--input-bg);">
+                        <label class="text-sm font-medium opacity-70">Mês de Referência:</label>
+                        <input type="month" id="startMonthDash" class="tech-input rounded-lg p-2 text-sm" style="color: var(--text-primary);">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div><label class="text-xs uppercase opacity-50 block mb-1">Transações</label><input type="file" id="fileTransacoesDash" accept=".csv" class="tech-input w-full rounded p-2 text-xs"><p id="stDashTrans" class="text-[10px] mt-1 opacity-50">--</p></div>
+                    <div><label class="text-xs uppercase opacity-50 block mb-1">Usuários</label><input type="file" id="fileUsuariosDash" accept=".csv" class="tech-input w-full rounded p-2 text-xs"><p id="stDashUsers" class="text-[10px] mt-1 opacity-50">--</p></div>
+                    <div><label class="text-xs uppercase opacity-50 block mb-1">E-mails (Brevo)</label><input type="file" id="fileEmailsDash" accept=".csv" class="tech-input w-full rounded p-2 text-xs"><p id="stDashEmails" class="text-[10px] mt-1 opacity-50">--</p></div>
+                    <div><label class="text-xs uppercase opacity-50 block mb-1">Scoring</label><input type="file" id="fileScoringDash" accept=".csv" class="tech-input w-full rounded p-2 text-xs"><p id="stDashScore" class="text-[10px] mt-1 opacity-50">--</p></div>
+                </div>
+                <button onclick="processDashboard()" class="accent-btn w-full rounded-lg py-3 flex justify-center items-center gap-2 text-sm uppercase tracking-wider">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i> Gerar Dashboard Completo
+                </button>
+            </section>
+            
+            <div id="dashboardResults" class="hidden">
+                
+                <!-- === SECTION: AQUISIÇÃO === -->
+                <div class="mb-4 flex items-center gap-2">
+                    <span class="bg-[var(--woca-orange)] w-1 h-6 rounded-full"></span>
+                    <h3 class="text-xl font-bold uppercase tracking-wide">Performance de Aquisição</h3>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="glass-panel p-6 flex flex-col items-center justify-center text-center"><div class="kpi-value accent-text" id="kpiTotalRegisters">0</div><div class="kpi-label">Total de Cadastros</div><div class="text-xs opacity-50 mt-1">Mês de Referência</div></div>
+                    <div class="glass-panel p-6 flex flex-col items-center justify-center text-center"><div class="kpi-value" style="color: var(--chart-green);" id="kpiTotalValidated">0</div><div class="kpi-label">Leads Validados</div><div class="text-xs opacity-50 mt-1">Tendência de Qualidade</div></div>
+                    <div class="glass-panel p-6 flex flex-col items-center justify-center text-center"><div class="kpi-value" style="color: var(--chart-blue);" id="kpiPercValidated">0%</div><div class="kpi-label">% Validação</div><div class="text-xs opacity-50 mt-1">Conversão de Cadastro</div></div>
+                </div>
+
+                <div class="glass-panel p-0 flex flex-col h-auto mb-6"><div class="p-4 border-b border-[var(--table-border)]"><h4 class="font-medium flex items-center gap-2"><i data-lucide="check-circle" class="w-4 h-4" style="color: var(--chart-green);"></i> Validação (Últimos 3 Meses)</h4></div><div class="p-6 overflow-x-auto" id="dashValidados"></div></div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <div class="glass-panel p-0 flex flex-col h-full lg:col-span-2"><div class="p-4 border-b border-[var(--table-border)]"><h4 class="font-medium flex items-center gap-2"><i data-lucide="trending-up" class="w-4 h-4 accent-text"></i> Aquisição por Origem</h4></div><div class="p-6 overflow-x-auto h-full" id="dashMediumTable"></div></div>
+                    <div class="flex flex-col gap-4">
+                        <div class="glass-panel p-6 flex-1 flex flex-col justify-center"><div class="flex items-center gap-2 mb-2 font-bold uppercase text-xs tracking-wider" style="color: var(--chart-green);"><i data-lucide="arrow-up-right" class="w-4 h-4"></i> Maior Crescimento (%)</div><div class="text-xl font-bold mb-1" style="color: var(--text-primary);" id="kpiMedGrowthName">-</div><div class="text-sm opacity-60" id="kpiMedGrowthVal">+0%</div></div>
+                        <div class="glass-panel p-6 flex-1 flex flex-col justify-center"><div class="flex items-center gap-2 mb-2 font-bold uppercase text-xs tracking-wider" style="color: var(--chart-red);"><i data-lucide="arrow-down-right" class="w-4 h-4"></i> Maior Queda (%)</div><div class="text-xl font-bold mb-1" style="color: var(--text-primary);" id="kpiMedDropName">-</div><div class="text-sm opacity-60" id="kpiMedDropVal">-0%</div></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div class="glass-panel p-0 flex flex-col h-auto"><div class="p-4 border-b border-[var(--table-border)]"><h4 class="font-medium flex items-center gap-2"><i data-lucide="shopping-cart" class="w-4 h-4" style="color: var(--chart-green);"></i> Distribuição de Vendas (Novos)</h4></div><div class="p-6 overflow-x-auto" id="dashSalesTable"></div></div>
+                   <div class="grid grid-cols-1 gap-4">
+                       <div class="glass-panel p-6 flex items-center justify-between"><div><div class="kpi-label mb-1">Plano Mais Vendido</div><div class="text-xl font-bold" style="color: var(--text-primary);" id="kpiBestPlan">-</div></div><div class="p-3 rounded-full bg-purple-500/20" style="color: var(--chart-purple);"><i data-lucide="crown" class="w-6 h-6"></i></div></div>
+                       <div class="glass-panel p-6 flex items-center justify-between"><div><div class="kpi-label mb-1">Receita (Novos Clientes)</div><div class="text-xl font-bold" style="color: var(--chart-green);" id="kpiRevenue">R$ 0,00</div></div><div class="p-3 rounded-full bg-green-500/20" style="color: var(--chart-green);"><i data-lucide="dollar-sign" class="w-6 h-6"></i></div></div>
+                       <div class="glass-panel p-6 flex items-center justify-between"><div><div class="kpi-label mb-1">Ticket Médio (Novos)</div><div class="text-xl font-bold" style="color: var(--chart-blue);" id="kpiTicket">R$ 0,00</div></div><div class="p-3 rounded-full bg-blue-500/20" style="color: var(--chart-blue);"><i data-lucide="trending-up" class="w-6 h-6"></i></div></div>
+                   </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <div class="glass-panel p-0 lg:col-span-2 flex flex-col h-auto"><div class="p-4 border-b border-[var(--table-border)]"><h4 class="font-medium flex items-center gap-2"><i data-lucide="briefcase" class="w-4 h-4" style="color: var(--chart-blue);"></i> Por Profissão (Top 3 Meses)</h4></div><div class="p-6 overflow-x-auto" id="dashProfessionTable"></div></div>
+                    <div class="flex flex-col gap-4">
+                        <div class="glass-panel p-6 flex-1 flex flex-col justify-center"><div class="flex items-center gap-2 mb-2 font-bold uppercase text-xs tracking-wider" style="color: var(--chart-green);"><i data-lucide="arrow-up-right" class="w-4 h-4"></i> Maior Crescimento (%)</div><div class="text-xl font-bold mb-1" style="color: var(--text-primary);" id="kpiProfGrowthName">-</div><div class="text-sm opacity-60" id="kpiProfGrowthVal">+0%</div></div>
+                        <div class="glass-panel p-6 flex-1 flex flex-col justify-center"><div class="flex items-center gap-2 mb-2 font-bold uppercase text-xs tracking-wider" style="color: var(--chart-red);"><i data-lucide="arrow-down-right" class="w-4 h-4"></i> Maior Queda (%)</div><div class="text-xl font-bold mb-1" style="color: var(--text-primary);" id="kpiProfDropName">-</div><div class="text-sm opacity-60" id="kpiProfDropVal">-0%</div></div>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-0 flex flex-col h-auto mb-6"><div class="p-4 border-b border-[var(--table-border)]"><h4 class="font-medium flex items-center gap-2"><i data-lucide="megaphone" class="w-4 h-4" style="color: var(--chart-purple);"></i> Performance de Campanhas (Ativas no Mês)</h4></div><div class="p-6 overflow-x-auto" id="dashCampaignTable"></div></div>
+                <div class="glass-panel p-0 flex flex-col h-auto mb-6"><div class="p-4 border-b border-[var(--table-border)]"><h4 class="font-medium flex items-center gap-2"><i data-lucide="calendar-days" class="w-4 h-4 accent-text"></i> Conversão Acumulada</h4></div><div class="p-6 overflow-x-auto" id="dashConvTable"></div></div>
+                <div class="glass-panel p-0 flex flex-col h-auto mb-10"><div class="p-4 border-b border-[var(--table-border)]"><h4 class="font-medium flex items-center gap-2"><i data-lucide="timer" class="w-4 h-4 text-cyan-400"></i> Velocidade de Conversão (Cohort)</h4></div><div class="p-6 overflow-x-auto" id="dashCohortTable"></div></div>
+                
+                <!-- === SECTION: E-MAIL MARKETING === -->
+                <div class="mb-4 flex items-center gap-2 mt-12 pt-6 border-t border-[var(--card-border)]">
+                    <span class="bg-[var(--woca-orange)] w-1 h-6 rounded-full"></span>
+                    <h3 class="text-xl font-bold uppercase tracking-wide">Performance de E-mail Marketing</h3>
+                </div>
+
+                <!-- KPI Cards (Email) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+                    <div class="glass-panel p-5 flex flex-col justify-center"><div class="kpi-label mb-2">Disparos</div><div class="text-2xl font-bold mb-1" id="dashEmailCount">0</div><div class="text-xs flex items-center gap-1" id="dashEmailTrendCount"><span class="trend-neutral">-</span> vs mês anterior</div></div>
+                    <div class="glass-panel p-5 flex flex-col justify-center"><div class="kpi-label mb-2">Enviados</div><div class="text-2xl font-bold mb-1" id="dashEmailSent">0</div><div class="text-xs flex items-center gap-1" id="dashEmailTrendSent"><span class="trend-neutral">-</span> vs mês anterior</div></div>
+                    <div class="glass-panel p-5 flex flex-col justify-center"><div class="kpi-label mb-2">Taxa de Abertura</div><div class="text-2xl font-bold mb-1" style="color: var(--chart-blue);" id="dashEmailOpen">0%</div><div class="text-xs flex items-center gap-1" id="dashEmailTrendOpen"><span class="trend-neutral">-</span> vs mês anterior</div></div>
+                    <div class="glass-panel p-5 flex flex-col justify-center"><div class="kpi-label mb-2">CTOR</div><div class="text-2xl font-bold mb-1" style="color: var(--chart-green);" id="dashEmailCTOR">0%</div><div class="text-xs flex items-center gap-1" id="dashEmailTrendCTOR"><span class="trend-neutral">-</span> vs mês anterior</div></div>
+                    <div class="glass-panel p-5 flex flex-col justify-center"><div class="kpi-label mb-2">Descadastros</div><div class="text-2xl font-bold mb-1" style="color: var(--chart-red);" id="dashEmailUnsub">0%</div><div class="text-xs flex items-center gap-1" id="dashEmailTrendUnsub"><span class="trend-neutral">-</span> vs mês anterior</div></div>
+                </div>
+
+                <!-- Table: Performance Summary -->
+                <div class="glass-panel p-0 flex flex-col h-auto mb-6"><div class="p-4 border-b border-[var(--table-border)]"><h4 class="font-medium flex items-center gap-2"><i data-lucide="bar-chart-3" class="w-4 h-4 accent-text"></i> Resumo de Performance (Últimos 3 Meses)</h4></div><div class="p-6 overflow-x-auto" id="dashEmailSummaryTable"></div></div>
+
+                <!-- Top Rankings -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+                    <div class="flex flex-col gap-4"><h4 class="font-medium flex items-center gap-2 mb-2"><i data-lucide="eye" class="w-4 h-4" style="color: var(--chart-blue);"></i> Top 3 Taxa de Abertura</h4><div id="dashTopOpenList" class="flex flex-col gap-3"></div></div>
+                    <div class="flex flex-col gap-4"><h4 class="font-medium flex items-center gap-2 mb-2"><i data-lucide="mouse-pointer-2" class="w-4 h-4" style="color: var(--chart-green);"></i> Top 3 Engajamento (CTOR)</h4><div id="dashTopCTORList" class="flex flex-col gap-3"></div></div>
+                </div>
+
+                <!-- === SECTION: LEAD SCORING (NEW) === -->
+                <div class="mb-4 flex items-center gap-2 mt-12 pt-6 border-t border-[var(--card-border)]">
+                    <span class="bg-[var(--woca-orange)] w-1 h-6 rounded-full"></span>
+                    <h3 class="text-xl font-bold uppercase tracking-wide">Performance de Lead Scoring</h3>
+                </div>
+
+                <!-- Scoring KPIs -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="glass-panel p-6 flex flex-col items-center justify-center text-center">
+                        <div class="kpi-value" style="color: var(--chart-green);" id="dashScoreMean">0.00</div>
+                        <div class="kpi-label">Média Geral do Mês</div>
+                        <div class="text-xs flex items-center gap-1 justify-center mt-1" id="dashScoreTrendMean"><span class="trend-neutral">-</span> vs mês anterior</div>
+                    </div>
+                    <div class="glass-panel p-6 flex flex-col items-center justify-center text-center">
+                        <div class="kpi-value accent-text" id="dashScoreMedian">0</div>
+                        <div class="kpi-label">Mediana Geral do Mês</div>
+                        <div class="text-xs flex items-center gap-1 justify-center mt-1" id="dashScoreTrendMedian"><span class="trend-neutral">-</span> vs mês anterior</div>
+                    </div>
+                </div>
+
+                <!-- Table: General Summary -->
+                <div class="glass-panel p-0 flex flex-col h-auto mb-10">
+                    <div class="p-4 border-b border-[var(--table-border)]"><h4 class="font-medium flex items-center gap-2"><i data-lucide="bar-chart-2" class="w-4 h-4 accent-text"></i> Resumo Geral de Scoring (Comparativo)</h4></div>
+                    <div class="p-6 overflow-x-auto" id="dashScoreSummaryTable"></div>
+                </div>
+
+                <!-- Scoring Blocks: Plan, Source, Profession (Reorganized) -->
+                <div id="dashScoreBlocks" class="flex flex-col gap-12"></div>
+
+            </div>
+        </div>
+
+        <!-- TAB 1: Aquisição -->
         <div id="tab-aquisicao" class="tab-content active">
-            <!-- Controls -->
             <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10">
                 <div class="lg:col-span-8 glass-panel p-8 relative overflow-hidden group">
-                    <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <i data-lucide="upload-cloud" class="w-32 h-32" style="color: var(--text-primary);"></i>
-                    </div>
+                    <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity"><i data-lucide="upload-cloud" class="w-32 h-32" style="color: var(--text-primary);"></i></div>
                     <h2 class="text-lg font-medium mb-6 flex items-center gap-2" style="color: var(--text-primary);">
                         <i data-lucide="database" class="w-5 h-5 accent-text"></i> Input de Dados (Aquisição)
                     </h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-xs uppercase tracking-wide mb-2 opacity-70" style="color: var(--text-primary);">Transações (CSV)</label>
-                            <input type="file" id="fileTransacoes" accept=".csv" class="tech-input w-full rounded-lg p-3 text-sm">
-                            <p id="statusTransacoes" class="text-xs mt-2" style="color: var(--text-secondary);">Aguardando arquivo...</p>
-                        </div>
-                        <div>
-                            <label class="block text-xs uppercase tracking-wide mb-2 opacity-70" style="color: var(--text-primary);">Usuários (CSV)</label>
-                            <input type="file" id="fileUsuarios" accept=".csv" class="tech-input w-full rounded-lg p-3 text-sm">
-                            <p id="statusUsuarios" class="text-xs mt-2" style="color: var(--text-secondary);">Aguardando arquivo...</p>
-                        </div>
+                        <div><label class="block text-xs uppercase tracking-wide mb-2 opacity-70" style="color: var(--text-primary);">Transações (CSV)</label><input type="file" id="fileTransacoes" accept=".csv" class="tech-input w-full rounded-lg p-3 text-sm"><p id="statusTransacoes" class="text-xs mt-2" style="color: var(--text-secondary);">Aguardando arquivo...</p></div>
+                        <div><label class="block text-xs uppercase tracking-wide mb-2 opacity-70" style="color: var(--text-primary);">Usuários (CSV)</label><input type="file" id="fileUsuarios" accept=".csv" class="tech-input w-full rounded-lg p-3 text-sm"><p id="statusUsuarios" class="text-xs mt-2" style="color: var(--text-secondary);">Aguardando arquivo...</p></div>
                     </div>
                 </div>
                 <div class="lg:col-span-4 glass-panel p-8 flex flex-col justify-between">
@@ -467,15 +373,11 @@
                         <input type="month" id="startMonthAcq" class="tech-input w-full rounded-lg p-3 mb-2 hidden" style="color: var(--text-primary);">
                         <p id="weekRangeDisplayAcq" class="text-xs accent-text h-4 font-mono"></p>
                     </div>
-                    <button onclick="processData('aquisicao')" class="accent-btn w-full rounded-lg py-4 mt-4 flex justify-center items-center gap-2">
-                        <i data-lucide="cpu" class="w-4 h-4"></i> PROCESSAR AQUISIÇÃO
-                    </button>
+                    <button onclick="processData('aquisicao')" class="accent-btn w-full rounded-lg py-4 mt-4 flex justify-center items-center gap-2"><i data-lucide="cpu" class="w-4 h-4"></i> PROCESSAR AQUISIÇÃO</button>
                 </div>
             </section>
 
-            <!-- Results Grid (Acquisition) -->
             <div id="resultsAreaAcq" class="hidden grid-cols-1 xl:grid-cols-2 gap-6">
-                <!-- ROW 1 -->
                 <div class="glass-panel p-0 flex flex-col h-auto">
                     <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
                         <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="check-circle" class="w-4 h-4 text-green-400"></i> <span id="titleValidados">Validados (Tendência)</span></h3>
@@ -490,8 +392,6 @@
                     </div>
                     <div class="p-6 overflow-x-auto custom-scroll"><div id="renderAquisicao"></div></div>
                 </div>
-                
-                <!-- ROW 2: Conversão (HIDES IN MONTHLY) -->
                 <div id="containerConversaoDetalhada" class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
                     <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
                         <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="user-check" class="w-4 h-4 text-green-400"></i> Conversão de Leads em Clientes</h3>
@@ -499,8 +399,6 @@
                     </div>
                     <div class="p-6 overflow-x-auto custom-scroll"><div id="renderConversao"></div></div>
                 </div>
-
-                <!-- ROW 3 -->
                 <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
                     <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
                         <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="shopping-cart" class="w-4 h-4 text-green-400"></i> Distribuição de Vendas (Novos Clientes)</h3>
@@ -515,8 +413,6 @@
                     </div>
                     <div class="p-6 overflow-x-auto custom-scroll"><div id="renderPlanos"></div></div>
                 </div>
-
-                <!-- ROW 4 -->
                 <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
                     <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
                         <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="briefcase" class="w-4 h-4 text-blue-400"></i> Por Profissão</h3>
@@ -531,8 +427,6 @@
                     </div>
                     <div class="p-6 overflow-x-auto custom-scroll"><div id="renderCampanha"></div></div>
                 </div>
-
-                <!-- ROW 5 -->
                 <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
                     <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
                         <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="calendar-days" class="w-4 h-4 accent-text"></i> Conversão Acumulada</h3>
@@ -544,9 +438,7 @@
                     <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
                         <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="timer" class="w-4 h-4 text-cyan-400"></i> Velocidade de Conversão (Cohort 30 Dias)</h3>
                         <div class="flex gap-2">
-                            <button onclick="downloadImage('tableVelocidade', 'Woca_Cohort.png')" class="download-btn text-xs px-3 py-1.5 rounded flex items-center gap-1 transition-all font-medium">
-                                <i data-lucide="image-down" class="w-3 h-3"></i> Baixar Imagem
-                            </button>
+                            <button onclick="downloadImage('tableVelocidade', 'Woca_Cohort.png')" class="download-btn text-xs px-3 py-1.5 rounded flex items-center gap-1 transition-all font-medium"><i data-lucide="image-down" class="w-3 h-3"></i> Baixar Imagem</button>
                             <button onclick="copyTable('tableVelocidade')" class="text-xs opacity-50 hover:opacity-100 transition-opacity" style="color: var(--text-primary);">Copiar</button>
                         </div>
                     </div>
@@ -643,8 +535,7 @@
             </section>
 
             <div id="resultsAreaScoring" class="hidden grid-cols-1 xl:grid-cols-2 gap-6">
-                
-                <!-- Card: Resumo Geral (Semana Atual vs Anteriores) -->
+                <!-- Content here is same structure as dashboard logic but kept for detailed view -->
                 <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
                     <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
                         <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="bar-chart-2" class="w-4 h-4 accent-text"></i> Resumo Geral de Scoring (Comparativo)</h3>
@@ -652,8 +543,6 @@
                     </div>
                     <div class="p-6 overflow-x-auto custom-scroll"><div id="renderScoreGeral"></div></div>
                 </div>
-
-                <!-- Card: Por Plano -->
                 <div class="glass-panel p-0 flex flex-col h-auto">
                     <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
                         <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="credit-card" class="w-4 h-4 text-purple-400"></i> Média e Mediana por Plano</h3>
@@ -661,8 +550,6 @@
                     </div>
                     <div class="p-6 overflow-x-auto custom-scroll"><div id="renderScorePlano"></div></div>
                 </div>
-
-                <!-- Card: Por Origem/Mídia -->
                 <div class="glass-panel p-0 flex flex-col h-auto">
                     <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
                         <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="globe" class="w-4 h-4 accent-text"></i> Média e Mediana por Origem / Mídia</h3>
@@ -670,8 +557,6 @@
                     </div>
                     <div class="p-6 overflow-x-auto custom-scroll"><div id="renderScoreOrigem"></div></div>
                 </div>
-
-                <!-- Card: Por Campanha -->
                 <div class="glass-panel p-0 flex flex-col h-auto">
                     <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
                         <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="megaphone" class="w-4 h-4 text-pink-400"></i> Média e Mediana por Campanha</h3>
@@ -679,8 +564,6 @@
                     </div>
                     <div class="p-6 overflow-x-auto custom-scroll"><div id="renderScoreCampanha"></div></div>
                 </div>
-
-                <!-- Card: Por Content -->
                 <div class="glass-panel p-0 flex flex-col h-auto">
                     <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
                         <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="file-text" class="w-4 h-4 text-cyan-400"></i> Média e Mediana por Content</h3>
@@ -688,8 +571,6 @@
                     </div>
                     <div class="p-6 overflow-x-auto custom-scroll"><div id="renderScoreContent"></div></div>
                 </div>
-
-                 <!-- Card: Por Profissão -->
                  <div class="glass-panel p-0 xl:col-span-2 flex flex-col h-auto">
                     <div class="p-6 border-b flex justify-between items-center" style="border-color: var(--table-border);">
                         <h3 class="font-medium flex gap-2 items-center" style="color: var(--text-primary);"><i data-lucide="briefcase" class="w-4 h-4 text-blue-400"></i> Média e Mediana por Profissão</h3>
@@ -699,69 +580,33 @@
                 </div>
             </div>
         </div>
-        
     </main>
 
-    <!-- Script Logic -->
     <script>
         lucide.createIcons();
-        
-        let rawTransacoes = [];
-        let rawUsuarios = [];
-        let rawEmails = [];
-        let rawScoring = [];
-        let reportMode = 'weekly'; 
+        let rawTransacoes = []; let rawUsuarios = []; let rawEmails = []; let rawScoring = []; let reportMode = 'weekly'; 
 
-        // --- MODE SWITCHER LOGIC ---
+        // --- COMMON LOGIC ---
         function setReportMode(mode) {
             reportMode = mode;
-            document.getElementById('btn-weekly').classList.toggle('active', mode === 'weekly');
-            document.getElementById('btn-monthly').classList.toggle('active', mode === 'monthly');
-            document.getElementById('btn-weekly-m').classList.toggle('active', mode === 'weekly');
-            document.getElementById('btn-monthly-m').classList.toggle('active', mode === 'monthly');
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            if(mode === 'weekly') { document.getElementById('btn-weekly').classList.add('active'); document.getElementById('btn-weekly-m').classList.add('active'); }
+            else { document.getElementById('btn-monthly').classList.add('active'); document.getElementById('btn-monthly-m').classList.add('active'); }
             
-            const tabs = ['Acq', 'Email', 'Scoring'];
-            tabs.forEach(tab => {
-                const weekInput = document.getElementById(`startDate${tab}`);
-                const monthInput = document.getElementById(`startMonth${tab}`);
-                const label = document.getElementById(`labelDate${tab}`);
-                const display = document.getElementById(`weekRangeDisplay${tab}`);
-                if (mode === 'weekly') {
-                    weekInput.classList.remove('hidden');
-                    monthInput.classList.add('hidden');
-                    if(label) label.textContent = 'Domingo (Início)';
-                } else {
-                    weekInput.classList.add('hidden');
-                    monthInput.classList.remove('hidden');
-                    if(label) label.textContent = 'Mês de Referência';
-                }
-                display.innerText = '';
+            const dashBtn = document.getElementById('btn-dashboard');
+            if (mode === 'monthly') { dashBtn.classList.remove('hidden'); dashBtn.classList.add('flex'); } 
+            else { dashBtn.classList.add('hidden'); dashBtn.classList.remove('flex'); if(document.getElementById('tab-dashboard').classList.contains('active')) switchTab('aquisicao'); }
+
+            ['Acq', 'Email', 'Scoring'].forEach(tab => {
+                const w = document.getElementById(`startDate${tab}`); const m = document.getElementById(`startMonth${tab}`);
+                if(w && m) { if (mode === 'weekly') { w.classList.remove('hidden'); m.classList.add('hidden'); } else { w.classList.add('hidden'); m.classList.remove('hidden'); } }
             });
-            
-            // Update Titles based on mode
-            const emailTitle = document.getElementById('titleEmailSemanal');
-            if(emailTitle) emailTitle.innerText = mode === 'weekly' ? 'Resumo de Performance (Últimas 8 Semanas)' : 'Resumo de Performance (Últimos 3 Meses)';
         }
 
         function toggleTheme() {
-            const body = document.body;
+            document.body.classList.toggle('light-mode');
             const icon = document.getElementById('themeIcon');
-            body.classList.toggle('light-mode');
-            
-            const activeBtn = document.querySelector('.tab-btn.active');
-            let activeTabName = 'aquisicao';
-            if(activeBtn.textContent.includes('E-mail')) activeTabName = 'email';
-            if(activeBtn.textContent.includes('Scoring')) activeTabName = 'scoring';
-
-            if (activeTabName === 'aquisicao' && rawTransacoes.length > 0) processData('aquisicao');
-            else if (activeTabName === 'email' && rawEmails.length > 0) processData('email');
-            else if (activeTabName === 'scoring' && rawScoring.length > 0) processData('scoring');
-            
-            if (body.classList.contains('light-mode')) {
-                icon.setAttribute('data-lucide', 'moon');
-            } else {
-                icon.setAttribute('data-lucide', 'sun');
-            }
+            if (document.body.classList.contains('light-mode')) icon.setAttribute('data-lucide', 'moon'); else icon.setAttribute('data-lucide', 'sun');
             lucide.createIcons();
         }
 
@@ -769,53 +614,42 @@
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById('tab-' + tabName).classList.add('active');
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            const buttons = document.querySelectorAll('.tab-btn');
-            if (tabName === 'aquisicao') buttons[0].classList.add('active');
-            if (tabName === 'email') buttons[1].classList.add('active');
-            if (tabName === 'scoring') buttons[2].classList.add('active');
+            const map = {'aquisicao':0, 'email':1, 'scoring':2, 'dashboard':3};
+            const btns = document.querySelectorAll('.tab-btn');
+            if(map[tabName] !== undefined && btns[map[tabName]]) btns[map[tabName]].classList.add('active');
         }
 
-        // --- Event Listeners ---
-        document.getElementById('fileTransacoes').addEventListener('change', (e) => {
-            const file = e.target.files[0]; if(!file) return;
-            Papa.parse(file, { header: true, skipEmptyLines: true, complete: (results) => {
-                rawTransacoes = results.data;
-                document.getElementById('statusTransacoes').innerText = `Carregado: ${results.data.length} linhas`;
-                document.getElementById('statusTransacoes').classList.add('text-green-400');
-            }});
-        });
-        document.getElementById('fileUsuarios').addEventListener('change', (e) => {
-            const file = e.target.files[0]; if(!file) return;
-            Papa.parse(file, { header: true, skipEmptyLines: true, complete: (results) => {
-                rawUsuarios = results.data;
-                document.getElementById('statusUsuarios').innerText = `Carregado: ${results.data.length} linhas`;
-                document.getElementById('statusUsuarios').classList.add('text-green-400');
-            }});
-        });
-        document.getElementById('fileEmails').addEventListener('change', (e) => {
-            const file = e.target.files[0]; if(!file) return;
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                const text = evt.target.result;
-                const lines = text.split('\n');
-                const cleanCsv = lines.slice(3).join('\n');
-                Papa.parse(cleanCsv, { header: true, skipEmptyLines: true, complete: (results) => {
-                    rawEmails = results.data;
-                    document.getElementById('statusEmails').innerText = `Carregado: ${results.data.length} campanhas`;
-                    document.getElementById('statusEmails').classList.add('text-green-400');
-                    document.getElementById('statusEmails').classList.remove('text-secondary');
+        function handleFileLoad(event, type, statusId) {
+            const file = event.target.files[0]; if(!file) return;
+            if (type === 'email') {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    const cleanCsv = evt.target.result.split('\n').slice(3).join('\n');
+                    Papa.parse(cleanCsv, { header: true, skipEmptyLines: true, complete: (res) => { rawEmails = res.data; document.getElementById(statusId).innerText = 'OK'; document.getElementById(statusId).classList.add('text-green-400'); }});
+                }; reader.readAsText(file);
+            } else {
+                Papa.parse(file, { header: true, skipEmptyLines: true, complete: (res) => {
+                    if(type === 'transacoes') rawTransacoes = res.data;
+                    if(type === 'usuarios') rawUsuarios = res.data;
+                    if(type === 'scoring') rawScoring = res.data;
+                    document.getElementById(statusId).innerText = 'OK'; document.getElementById(statusId).classList.add('text-green-400');
                 }});
-            };
-            reader.readAsText(file);
+            }
+        }
+
+        ['fileTransacoes', 'fileUsuarios', 'fileEmails', 'fileScoring'].forEach(id => { 
+            const el = document.getElementById(id);
+            if (el) {
+                const t = id.replace('file','').toLowerCase(); 
+                el.addEventListener('change', (e) => handleFileLoad(e, t === 'transacoes' || t === 'usuarios' || t === 'scoring' ? t : 'email', 'status' + id.replace('file',''))); 
+            }
         });
-        document.getElementById('fileScoring').addEventListener('change', (e) => {
-            const file = e.target.files[0]; if(!file) return;
-            Papa.parse(file, { header: true, skipEmptyLines: true, complete: (results) => {
-                rawScoring = results.data;
-                document.getElementById('statusScoring').innerText = `Carregado: ${results.data.length} leads`;
-                document.getElementById('statusScoring').classList.add('text-green-400');
-                document.getElementById('statusScoring').classList.remove('text-secondary');
-            }});
+        ['fileTransacoesDash', 'fileUsuariosDash', 'fileEmailsDash', 'fileScoringDash'].forEach(id => { 
+            const el = document.getElementById(id);
+            if (el) {
+                const t = id.replace('file','').replace('Dash','').toLowerCase(); 
+                el.addEventListener('change', (e) => handleFileLoad(e, t === 'transacoes' || t === 'usuarios' || t === 'scoring' ? t : 'email', 'stDash' + id.replace('file','').replace('Dash',''))); 
+            }
         });
 
         const dateAcq = document.getElementById('startDateAcq');
@@ -824,10 +658,12 @@
         const monthAcq = document.getElementById('startMonthAcq');
         const monthEmail = document.getElementById('startMonthEmail');
         const monthScoring = document.getElementById('startMonthScoring');
+        const monthDash = document.getElementById('startMonthDash');
 
         function updateRangeDisplay(value, type, displayId) {
             if(!value) return;
             const displayEl = document.getElementById(displayId);
+            if(!displayEl) return;
             if (type === 'date') {
                 const start = new Date(value + 'T00:00:00');
                 const end = new Date(start); end.setDate(end.getDate() + 6);
@@ -847,245 +683,803 @@
             const type = e.target.type; 
             
             if(type === 'date') {
-                dateAcq.value = val; dateEmail.value = val; dateScoring.value = val;
+                if(dateAcq) dateAcq.value = val; 
+                if(dateEmail) dateEmail.value = val; 
+                if(dateScoring) dateScoring.value = val;
                 updateRangeDisplay(val, type, 'weekRangeDisplayAcq');
                 updateRangeDisplay(val, type, 'weekRangeDisplayEmail');
                 updateRangeDisplay(val, type, 'weekRangeDisplayScoring');
             } else {
-                monthAcq.value = val; monthEmail.value = val; monthScoring.value = val;
+                if(monthAcq) monthAcq.value = val; 
+                if(monthEmail) monthEmail.value = val; 
+                if(monthScoring) monthScoring.value = val; 
+                if(monthDash) monthDash.value = val;
                 updateRangeDisplay(val, type, 'weekRangeDisplayAcq');
                 updateRangeDisplay(val, type, 'weekRangeDisplayEmail');
                 updateRangeDisplay(val, type, 'weekRangeDisplayScoring');
             }
         }
 
-        [dateAcq, dateEmail, dateScoring, monthAcq, monthEmail, monthScoring].forEach(el => {
-            el.addEventListener('change', syncInputs);
+        [dateAcq, dateEmail, dateScoring, monthAcq, monthEmail, monthScoring, monthDash].forEach(el => {
+            if(el) el.addEventListener('change', syncInputs);
         });
 
-        // --- Helper to get periods for Monthly/Weekly comparison ---
+        function parseDateBR(dateStr) { if(!dateStr) return null; let parts = dateStr.split('/'); if(parts.length===3) return new Date(parts[2], parts[1]-1, parts[0]); parts = dateStr.split('-'); if(parts.length===3) return new Date(parts[2], parts[1]-1, parts[0]); return null; }
+        function parseDateBrevo(dateStr) { if(!dateStr) return null; const parts = dateStr.split('-'); if(parts.length!==3) return null; return new Date(parts[2], parts[1]-1, parts[0]); }
+        function isUserValid(u) { const v = String(u['validado']).toLowerCase().trim(); return v === 'true' || v === '1' || v === 'sim'; }
+        function calculateMeanMedian(scores) { if(scores.length===0) return {mean:0, median:0}; const sum = scores.reduce((a,b)=>a+b,0); const sorted = [...scores].sort((a,b)=>a-b); const mid = Math.floor(sorted.length/2); return { mean: (sum/scores.length).toFixed(2), median: sorted.length%2!==0 ? sorted[mid] : (sorted[mid-1]+sorted[mid])/2 }; }
+        function parseMoney(valStr) { let v = valStr || "0"; v = v.replace('R$', '').trim(); if(v.includes(',')) v = v.replace(/\./g, '').replace(',', '.'); return parseFloat(v) || 0; }
+        function formatMoney(val) { return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+        function parseRate(valStr) { if(!valStr) return 0; return parseFloat(valStr.replace('%','').replace(',','.')) || 0; }
+
         function getComparisonPeriods(start, mode) {
             const periods = [];
-            let p0_start, p0_end, p1_start, p1_end, p2_start, p2_end;
-            let l0, l1, l2;
-
+            let p0_start = new Date(start), p0_end = new Date(start);
             if (mode === 'weekly') {
-                p0_start = new Date(start);
-                p0_end = new Date(start); p0_end.setDate(p0_end.getDate() + 6);
-                
-                p1_start = new Date(start); p1_start.setDate(p1_start.getDate() - 7);
-                p1_end = new Date(p1_start); p1_end.setDate(p1_end.getDate() + 6);
-                
-                p2_start = new Date(start); p2_start.setDate(p2_start.getDate() - 14);
-                p2_end = new Date(p2_start); p2_end.setDate(p2_end.getDate() + 6);
-                
-                l0 = 'Atual'; l1 = 'Semana Anterior'; l2 = '2 Semanas Atrás';
+                p0_end.setDate(p0_end.getDate()+6);
+                let p1_start = new Date(start); p1_start.setDate(p1_start.getDate()-7);
+                let p2_start = new Date(start); p2_start.setDate(p2_start.getDate()-14);
+                periods.push({label:'Atual', start:p0_start, end:p0_end, isCurrent:true});
+                periods.push({label:'Semana Anterior', start:p1_start, end:new Date(p1_start.getTime()+6*86400000), isCurrent:false});
+                periods.push({label:'2 Semanas Atrás', start:p2_start, end:new Date(p2_start.getTime()+6*86400000), isCurrent:false});
             } else {
-                // Monthly
-                // Start is 1st of Month
-                p0_start = new Date(start);
-                p0_end = new Date(start); p0_end.setMonth(p0_end.getMonth() + 1); p0_end.setDate(0);
-                
-                p1_start = new Date(start); p1_start.setMonth(p1_start.getMonth() - 1);
-                p1_end = new Date(p1_start); p1_end.setMonth(p1_end.getMonth() + 1); p1_end.setDate(0);
-                
-                p2_start = new Date(start); p2_start.setMonth(p2_start.getMonth() - 2);
-                p2_end = new Date(p2_start); p2_end.setMonth(p2_end.getMonth() + 1); p2_end.setDate(0);
-                
-                const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-                const year0 = p0_start.getFullYear();
-                const year1 = p1_start.getFullYear();
-                const year2 = p2_start.getFullYear();
-
-                l0 = `${monthNames[p0_start.getMonth()]} de ${year0}`;
-                l1 = `${monthNames[p1_start.getMonth()]} de ${year1}`;
-                l2 = `${monthNames[p2_start.getMonth()]} de ${year2}`;
+                p0_end.setMonth(p0_end.getMonth()+1); p0_end.setDate(0);
+                let p1_start = new Date(start); p1_start.setMonth(p1_start.getMonth()-1);
+                let p2_start = new Date(start); p2_start.setMonth(p2_start.getMonth()-2);
+                const months = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+                [p0_start, p1_start, p2_start].forEach((s, i) => {
+                    let e = new Date(s); e.setMonth(e.getMonth()+1); e.setDate(0); e.setHours(23,59,59,999);
+                    periods.push({label:`${months[s.getMonth()]} de ${s.getFullYear()}`, start:s, end:e, isCurrent: i===0});
+                });
             }
-            
-            // End of day fix
-            [p0_end, p1_end, p2_end].forEach(d => d.setHours(23,59,59,999));
-
-            return [
-                { label: l0, start: p0_start, end: p0_end, isCurrent: true },
-                { label: l1, start: p1_start, end: p1_end, isCurrent: false },
-                { label: l2, start: p2_start, end: p2_end, isCurrent: false }
-            ];
+            periods.forEach(p => p.end.setHours(23,59,59,999));
+            return periods;
         }
 
-        // --- Core Process ---
+        // --- EMAIL STATS ---
+        function calculateEmailStats(emails) {
+            let sent = 0, delivered = 0, weightOpen = 0, weightClick = 0, weightUnsub = 0;
+            emails.forEach(e => {
+                const s = parseInt(e['Sent']) || 0;
+                const d = parseInt(e['Delivered']) || 0;
+                sent += s; delivered += d;
+                const openRateVal = parseRate(e['Trackable open rate']); 
+                const ctorVal = parseRate(e['Click-to-Open rate']);
+                const unsubVal = parseRate(e['Unsubscription rate']);
+                const uniqueOpens = d * (openRateVal / 100);
+                const uniqueClicks = uniqueOpens * (ctorVal / 100);
+                const unsubs = d * (unsubVal / 100);
+                weightOpen += uniqueOpens; weightClick += uniqueClicks; weightUnsub += unsubs;
+            });
+            return {
+                sent, delivered, count: emails.length,
+                openRate: delivered > 0 ? (weightOpen / delivered) * 100 : 0,
+                ctor: weightOpen > 0 ? (weightClick / weightOpen) * 100 : 0,
+                unsubRate: delivered > 0 ? (weightUnsub / delivered) * 100 : 0,
+                uniqueOpensCount: Math.round(weightOpen), 
+                uniqueClicksCount: Math.round(weightClick),
+                unsubCount: Math.round(weightUnsub)
+            };
+        }
+
+        // --- NEW: SCORING DASHBOARD LOGIC ---
+        function calcScoringKPIs(periods) {
+            const getStats = (p) => {
+                const scores = rawScoring.filter(r => { const d = parseDateBR(r['DATA_CRIACAO_CONTA']); return d && d >= p.start && d <= p.end; }).map(r => parseFloat(r['SCORE'])||0);
+                return calculateMeanMedian(scores);
+            };
+            const s0 = getStats(periods[0]);
+            const s1 = getStats(periods[1]);
+
+            const trend = (curr, prev) => {
+                const diff = curr - prev;
+                const icon = diff >= 0 ? '<i data-lucide="arrow-up" class="w-3 h-3"></i>' : '<i data-lucide="arrow-down" class="w-3 h-3"></i>';
+                const color = diff >= 0 ? 'trend-up' : 'trend-down';
+                return `<span class="${color} flex items-center gap-1">${icon} ${Math.abs(diff).toFixed(2)}</span>`;
+            };
+
+            document.getElementById('dashScoreMean').innerText = s0.mean;
+            document.getElementById('dashScoreTrendMean').innerHTML = trend(s0.mean, s1.mean) + ' vs mês anterior';
+            
+            document.getElementById('dashScoreMedian').innerText = s0.median;
+            document.getElementById('dashScoreTrendMedian').innerHTML = trend(s0.median, s1.median) + ' vs mês anterior';
+        }
+
+        function generateScoringRankingBlock(periods, keyColumn, title, iconClass, iconName) {
+            // Data Aggegration
+            const data = {}; 
+            const targets = ['Eletricista','Estudante','Eletrotécnico','Engenheiro Eletricista','Outro','Engenheiro Civil','Arquiteto'];
+
+            // We need 3 periods for trend/best/worst logic
+            periods.forEach((p, idx) => {
+                const pKey = idx; 
+                const filteredRows = rawScoring.filter(row => { const d = parseDateBR(row['DATA_CRIACAO_CONTA']); return d && d >= p.start && d <= p.end; });
+                
+                const groups = {};
+                filteredRows.forEach(row => {
+                    let key;
+                    if (keyColumn === 'ORIGEM_MIDIA') {
+                        const s = row['PRIMEIRA_UTM_SOURCE'] || '-'; const m = row['PRIMEIRA_UTM_MEDIUM'] || '-'; key = `${s === '' ? '-' : s} / ${m === '' ? '-' : m}`;
+                    } else {
+                        key = row[keyColumn] || '(vazio)';
+                        if (keyColumn === 'PROFISSAO') {
+                            const cleanK = key.trim();
+                            const match = targets.find(t=>t.toLowerCase() === cleanK.toLowerCase());
+                            key = match ? match : 'Profissão customizada';
+                        }
+                        if (key === '') key = '(vazio)';
+                    }
+                    if(!groups[key]) groups[key] = [];
+                    groups[key].push(parseFloat(row['SCORE'])||0);
+                });
+
+                Object.keys(groups).forEach(k => {
+                    if(!data[k]) data[k] = { 0: {mean:0}, 1: {mean:0}, 2: {mean:0} }; // store stats per period
+                    data[k][pKey] = calculateMeanMedian(groups[k]);
+                });
+            });
+
+            // 1. Top 10 Ranking Table (Current Month)
+            const rows = Object.keys(data).map(k => ({ key: k, ...data[k] })).sort((a, b) => parseFloat(b[0].mean) - parseFloat(a[0].mean)).slice(0, 10);
+            
+            // 2. Best & Worst Logic (Over 3 Months - Average of Means)
+            const trendRows = Object.keys(data).map(k => {
+                const item = data[k];
+                if (item[0].mean == 0) return null; 
+                const avg = (parseFloat(item[0].mean) + parseFloat(item[1].mean) + parseFloat(item[2].mean)) / 3;
+                return { key: k, avgScore: avg, current: item[0].mean };
+            }).filter(x => x !== null).sort((a,b) => b.avgScore - a.avgScore);
+
+            const best3 = trendRows.slice(0, 3);
+            const worst3 = [...trendRows].sort((a,b) => a.avgScore - b.avgScore).slice(0, 3);
+
+            let htmlHeader = `
+            <div class="flex items-center gap-2 mb-4 mt-2">
+                <div class="p-2 rounded-full bg-opacity-10" style="background-color: var(--input-bg);">
+                    <i data-lucide="${iconName}" class="w-5 h-5 ${iconClass}"></i>
+                </div>
+                <h4 class="text-lg font-bold" style="color: var(--text-primary);">${title}</h4>
+            </div>`;
+
+            let htmlCards = `<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">`;
+            
+            // Best Block
+            htmlCards += `<div class="flex flex-col gap-3">
+                <div class="text-xs uppercase tracking-wider font-bold mb-1" style="color: var(--chart-green);">Melhores Médias (3 Meses)</div>`;
+            best3.forEach((b, i) => {
+                htmlCards += `
+                <div class="rank-card glass-panel p-4 flex justify-between items-center" style="border-left-color: var(--chart-green);">
+                    <div class="flex-1 min-w-0 pr-4">
+                        <div class="text-[10px] uppercase tracking-wide opacity-60 mb-1">#${i+1}</div>
+                        <div class="font-bold truncate text-sm" style="color: var(--text-primary);" title="${b.key}">${b.key}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-lg font-bold" style="color: var(--chart-green);">${b.avgScore.toFixed(2)}</div>
+                        <div class="text-[10px] opacity-50">Média (3 Meses)</div>
+                    </div>
+                </div>`;
+            });
+            htmlCards += `</div>`;
+
+            // Worst Block
+            htmlCards += `<div class="flex flex-col gap-3">
+                <div class="text-xs uppercase tracking-wider font-bold mb-1" style="color: var(--chart-red);">Piores Médias (3 Meses)</div>`;
+            worst3.forEach((w, i) => {
+                htmlCards += `
+                <div class="rank-card glass-panel p-4 flex justify-between items-center" style="border-left-color: var(--chart-red);">
+                    <div class="flex-1 min-w-0 pr-4">
+                        <div class="text-[10px] uppercase tracking-wide opacity-60 mb-1">#${i+1}</div>
+                        <div class="font-bold truncate text-sm" style="color: var(--text-primary);" title="${w.key}">${w.key}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-lg font-bold" style="color: var(--chart-red);">${w.avgScore.toFixed(2)}</div>
+                        <div class="text-[10px] opacity-50">Média (3 Meses)</div>
+                    </div>
+                </div>`;
+            });
+            htmlCards += `</div></div>`;
+
+            let htmlTable = `
+            <div class="glass-panel p-0 flex flex-col w-full mb-12">
+                <div class="p-4 border-b border-[var(--table-border)] bg-[var(--th-bg)]">
+                    <h5 class="font-medium text-xs uppercase tracking-wider opacity-70">Ranking do Mês Vigente (Top 10)</h5>
+                </div>
+                <div class="p-6 overflow-x-auto"><table class="w-full"><thead><tr><th>Item</th><th>Média</th><th>Mediana</th></tr></thead><tbody>`;
+            
+            rows.forEach(r => {
+                if (r[0].mean > 0) {
+                    htmlTable += `<tr><td class="font-bold" style="color: var(--text-primary);">${r.key}</td><td class="font-bold">${r[0].mean}</td><td style="color: var(--woca-orange);">${r[0].median}</td></tr>`;
+                }
+            });
+            htmlTable += `</tbody></table></div></div>`;
+
+            return `<div class="flex flex-col">${htmlHeader}${htmlCards}${htmlTable}</div>`;
+        }
+
+        // --- PROCESSORS ---
         function processData(tabMode) {
-            let startPeriod, endPeriod;
-            
-            if (reportMode === 'weekly') {
-                const inputId = tabMode === 'aquisicao' ? 'startDateAcq' : (tabMode === 'email' ? 'startDateEmail' : 'startDateScoring');
-                const val = document.getElementById(inputId).value;
-                if (!val) { alert("Selecione a data."); return; }
-                startPeriod = new Date(val + 'T00:00:00');
-                endPeriod = new Date(startPeriod); endPeriod.setDate(endPeriod.getDate() + 6);
+            let start, end;
+            if(reportMode === 'weekly') {
+                const val = document.getElementById(tabMode === 'aquisicao' ? 'startDateAcq' : (tabMode==='email'?'startDateEmail':'startDateScoring')).value;
+                if(!val) { alert("Selecione a data."); return; }
+                start = new Date(val+'T00:00:00'); end = new Date(start); end.setDate(end.getDate()+6);
             } else {
-                const inputId = tabMode === 'aquisicao' ? 'startMonthAcq' : (tabMode === 'email' ? 'startMonthEmail' : 'startMonthScoring');
-                const val = document.getElementById(inputId).value;
-                if (!val) { alert("Selecione o mês."); return; }
-                const [year, month] = val.split('-');
-                startPeriod = new Date(parseInt(year), parseInt(month) - 1, 1);
-                endPeriod = new Date(parseInt(year), parseInt(month), 0);
+                const val = document.getElementById(tabMode === 'aquisicao' ? 'startMonthAcq' : (tabMode==='email'?'startMonthEmail':'startMonthScoring')).value;
+                if(!val) { alert("Selecione o mês."); return; }
+                const [y, m] = val.split('-'); start = new Date(parseInt(y), parseInt(m)-1, 1); end = new Date(parseInt(y), parseInt(m), 0);
             }
-            endPeriod.setHours(23, 59, 59, 999);
-            
-            // Update Title of "Validados" based on mode
-            const valTitle = document.getElementById('titleValidados');
-            if(valTitle) valTitle.innerText = reportMode === 'weekly' ? 'Validados (Últimas 8 Semanas)' : 'Validados (Últimos 3 Meses)';
-            
-            // Update Title of "Email Summary" based on mode
-            const emailTitle = document.getElementById('titleEmailSemanal');
-            if(emailTitle) emailTitle.innerText = reportMode === 'weekly' ? 'Resumo de Performance (Últimas 8 Semanas)' : 'Resumo de Performance (Últimos 3 Meses)';
+            end.setHours(23,59,59,999);
 
-            // Hide/Show Detailed Conversion Table
-            const detailedConvDiv = document.getElementById('containerConversaoDetalhada');
-            if(detailedConvDiv) {
-                if (reportMode === 'monthly') detailedConvDiv.classList.add('hidden');
-                else detailedConvDiv.classList.remove('hidden');
-            }
-
-            if (tabMode === 'aquisicao') {
-                if (rawTransacoes.length === 0 || rawUsuarios.length === 0) { alert("CSVs necessários."); return; }
-                document.getElementById('resultsAreaAcq').classList.remove('hidden');
-                document.getElementById('resultsAreaAcq').classList.add('grid');
-
-                const periods = getComparisonPeriods(startPeriod, reportMode);
-
+            if(tabMode === 'aquisicao') {
+                if(rawTransacoes.length===0 || rawUsuarios.length===0) { alert("CSVs necessários."); return; }
+                document.getElementById('resultsAreaAcq').classList.remove('hidden'); document.getElementById('resultsAreaAcq').classList.add('grid');
+                if(reportMode === 'monthly') document.getElementById('containerConversaoDetalhada').classList.add('hidden'); else document.getElementById('containerConversaoDetalhada').classList.remove('hidden');
+                
+                const periods = getComparisonPeriods(start, reportMode);
                 generateAquisicao(periods);
-                generateValidados(startPeriod, reportMode); 
-                generatePivots(startPeriod, endPeriod, 'profissao', 'renderProfissao', 'tableProfissao', 'Profissão', periods);
-                generatePivots(startPeriod, endPeriod, 'utm_campaign', 'renderCampanha', 'tableCampanha', 'Campanha', periods);
-                
-                if (reportMode === 'weekly') generateConversao(startPeriod, endPeriod); // Only weekly
-                
-                generateDistribuicaoVendas(startPeriod, endPeriod, periods); // Modified to support Monthly view
-                generatePlanos(startPeriod, endPeriod, periods); // Modified
-                generateHistoricoMensal(startPeriod); 
-            } 
-            else if (tabMode === 'email') {
+                generateValidados(start, reportMode);
+                generatePivots(start, end, 'profissao', 'renderProfissao', 'tableProfissao', 'Profissão', periods);
+                generatePivots(start, end, 'utm_campaign', 'renderCampanha', 'tableCampanha', 'Campanha', periods);
+                if(reportMode === 'weekly') generateConversao(start, end);
+                generateDistribuicaoVendas(start, end, periods);
+                generatePlanos(start, end, periods);
+                generateHistoricoMensal(start);
+            } else if (tabMode === 'email') {
                 if (rawEmails.length === 0) { alert("CSV Brevo necessário."); return; }
                 document.getElementById('resultsAreaEmail').classList.remove('hidden');
                 document.getElementById('resultsAreaEmail').classList.add('grid');
-                generateEmailTable(startPeriod, endPeriod);
-                generateEmailTrend(startPeriod, reportMode); // UPDATED FUNCTION CALL
-            }
-            else if (tabMode === 'scoring') {
+                generateEmailTable(start, end);
+                generateEmailTrend(start, reportMode);
+            } else if (tabMode === 'scoring') {
                 if (rawScoring.length === 0) { alert("CSV Scoring necessário."); return; }
                 document.getElementById('resultsAreaScoring').classList.remove('hidden');
                 document.getElementById('resultsAreaScoring').classList.add('grid');
-                generateScoringTables(startPeriod, reportMode);
+                generateScoringTables(start, reportMode);
             }
         }
 
-        // --- Helper Funcs ---
-        function parseDateBR(dateStr) {
-            if(!dateStr) return null;
-            let parts = dateStr.split('/');
-            if(parts.length === 3) return new Date(parts[2], parts[1] - 1, parts[0]);
-            parts = dateStr.split('-');
-            if(parts.length === 3) return new Date(parts[2], parts[1] - 1, parts[0]);
-            return null;
-        }
-        function parseDateBrevo(dateStr) {
-            if(!dateStr) return null;
-            const parts = dateStr.split('-');
-            if(parts.length !== 3) return null;
-            return new Date(parts[2], parts[1] - 1, parts[0]);
-        }
-        function isUserValid(u) {
-            const v = String(u['validado']).toLowerCase().trim();
-            return v === 'true' || v === '1' || v === 'sim';
+        function processDashboard() {
+            if(rawTransacoes.length===0 || rawUsuarios.length===0) { alert("Dados Aquisição incompletos."); }
+            if(rawEmails.length===0) { alert("CSV Emails não carregado."); }
+            
+            const val = document.getElementById('startMonthDash').value;
+            if(!val) { alert("Selecione Mês."); return; }
+            const [y, m] = val.split('-'); const start = new Date(parseInt(y), parseInt(m)-1, 1); const end = new Date(parseInt(y), parseInt(m), 0); end.setHours(23,59,59,999);
+            document.getElementById('dashboardResults').classList.remove('hidden');
+            const periods = getComparisonPeriods(start, 'monthly');
+            
+            // --- ACQUISITION BLOCK ---
+            if(rawTransacoes.length > 0 && rawUsuarios.length > 0) {
+                calcAcquisitionKPIs(start, end);
+                generateValidados(start, 'monthly', 'dashValidados');
+                generateDashboardMedium(periods);
+                generateDashboardSales(start, end, periods);
+                generateDashboardProfession(start, end, periods);
+                generatePivots(start, end, 'utm_campaign', 'dashCampaignTable', 'tableCampanhaDash', 'Campanha (Ativas)', periods, true);
+                generateHistoricoMensal(start, 'dashConvTable', 'dashCohortTable');
+            }
+
+            // --- EMAIL BLOCK ---
+            if(rawEmails.length > 0) {
+                calcEmailKPIs(periods);
+                generateEmailTrend(start, 'monthly', 'dashEmailSummaryTable');
+                generateEmailRankings(start, end);
+            }
+
+            // --- SCORING BLOCK ---
+            if(rawScoring.length > 0) {
+                calcScoringKPIs(periods);
+                generateGeneralScoreComparison(periods);
+                // Render blocks into container
+                let blocksHtml = '';
+                blocksHtml += generateScoringRankingBlock(periods, 'PLANO_DETALHE', 'Por Plano', 'text-purple-400', 'credit-card');
+                blocksHtml += generateScoringRankingBlock(periods, 'ORIGEM_MIDIA', 'Por Origem / Mídia', 'accent-text', 'globe');
+                blocksHtml += generateScoringRankingBlock(periods, 'PROFISSAO', 'Por Profissão', 'text-blue-400', 'briefcase');
+                document.getElementById('dashScoreBlocks').innerHTML = blocksHtml;
+                
+                // Need to manually re-inject the Summary Table into Dashboard since logic is shared
+                // Or reuse existing function targeting dashboard element.
+                // Re-using logic below for dashboard target:
+                let htmlG = `<table id="tableScoreGeralDash"><thead><tr><th>Período</th><th>Média Geral</th><th>Mediana Geral</th></tr></thead><tbody>`;
+                periods.forEach(p => {
+                    const scores = rawScoring.filter(row => { const d = parseDateBR(row['DATA_CRIACAO_CONTA']); return d && d >= p.start && d <= p.end; }).map(r=>parseFloat(r['SCORE'])||0);
+                    const stats = calculateMeanMedian(scores);
+                    const rowStyle = p.isCurrent ? 'font-weight: bold; background-color: rgba(255, 136, 0, 0.1);' : '';
+                    const labelColor = p.isCurrent ? 'text-green-400' : 'text-gray-400';
+                    htmlG += `<tr style="${rowStyle}"><td><span class="${labelColor}">${p.label}</span></td><td class="text-lg font-bold">${stats.mean}</td><td class="text-lg font-bold" style="color: var(--woca-orange);">${stats.median}</td></tr>`;
+                });
+                document.getElementById('dashScoreSummaryTable').innerHTML = htmlG + `</tbody></table>`;
+            }
+            lucide.createIcons();
         }
 
-        function calculateMeanMedian(scores) {
-            if (scores.length === 0) return { mean: 0, median: 0 };
-            const sum = scores.reduce((a, b) => a + b, 0);
-            const mean = (sum / scores.length).toFixed(2);
-            const sorted = [...scores].sort((a, b) => a - b);
-            const mid = Math.floor(sorted.length / 2);
-            const median = sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-            return { mean, median };
+        // --- GENERATORS ---
+        function generateAquisicao(periods) {
+            const data = {};
+            periods.forEach((p, i) => {
+                rawUsuarios.forEach(u => {
+                    const d = parseDateBR(u['data_criacao_usuario (Data)']);
+                    if(d && d >= p.start && d <= p.end && isUserValid(u)) {
+                        const m = u['utm_medium'] || '(not set)'; if(!data[m]) data[m] = {p0:0, p1:0, p2:0};
+                        data[m]['p'+i]++;
+                    }
+                });
+            });
+            const rows = Object.keys(data).map(k => ({medium:k, ...data[k]})).filter(r=>r.p0>0||r.p1>0||r.p2>0).sort((a,b)=>b.p0-a.p0);
+            let html = `<table id="tableAquisicao"><thead><tr><th>Medium</th>`;
+            if(reportMode==='monthly') html += `<th>${periods[2].label}</th><th>${periods[1].label}</th><th>${periods[0].label}</th>`;
+            else html += `<th>${periods[1].label}</th><th>${periods[0].label}</th><th>Variação</th>`;
+            html += `</tr></thead><tbody>`;
+            rows.forEach(r => {
+                html += `<tr><td>${r.medium}</td>`;
+                if(reportMode==='monthly') html += `<td>${r.p2}</td><td>${r.p1}</td><td class="font-bold text-[var(--text-primary)]">${r.p0}</td>`;
+                else {
+                    let v = '-'; if(r.p1>0) v = (((r.p0-r.p1)/r.p1)*100).toFixed(2)+'%'; else if(r.p0>0) v='Novo';
+                    const c = v.includes('-')?'text-red-400':(v==='Novo'?'text-blue-400':'text-green-400');
+                    html += `<td>${r.p1}</td><td>${r.p0}</td><td class="${c}">${v}</td>`;
+                }
+                html += `</tr>`;
+            });
+            document.getElementById('renderAquisicao').innerHTML = html + `</tbody></table>`;
         }
 
-        // --- SCORING GENERATOR ---
+        function generateValidados(start, mode, targetId='renderValidados') {
+            const periods = []; let it = mode === 'weekly' ? 8 : 3;
+            for(let i=0; i<it; i++) {
+                let s = new Date(start); let e;
+                if(mode==='weekly') { s.setDate(s.getDate()-(7*i)); e = new Date(s); e.setDate(e.getDate()+6); }
+                else { s.setMonth(s.getMonth()-i); e = new Date(s); e.setMonth(e.getMonth()+1); e.setDate(0); }
+                e.setHours(23,59,59,999); periods.push({start:s, end:e});
+            }
+            periods.reverse();
+            let html = `<table id="tableValidados"><thead><tr><th>Período</th><th>Validados</th><th>%</th><th>Não Validados</th><th>%</th><th>Total</th></tr></thead><tbody>`;
+            periods.forEach(p => {
+                let val=0, nval=0;
+                rawUsuarios.forEach(u => { const d = parseDateBR(u['data_criacao_usuario (Data)']); if(d && d >= p.start && d <= p.end) { if(isUserValid(u)) val++; else nval++; } });
+                const tot = val+nval;
+                if(tot>0) {
+                    const label = mode==='monthly' ? p.start.toLocaleString('pt-BR',{month:'long', year:'numeric'}) : `${p.start.toLocaleDateString('pt-BR')} a ${p.end.toLocaleDateString('pt-BR')}`;
+                    html += `<tr><td class="capitalize">${label}</td><td class="font-medium">${val}</td><td>${((val/tot)*100).toFixed(2)}%</td><td style="color: var(--text-secondary);">${nval}</td><td>${((nval/tot)*100).toFixed(2)}%</td><td class="font-bold text-[var(--text-primary)]">${tot}</td></tr>`;
+                }
+            });
+            document.getElementById(targetId).innerHTML = html + `</tbody></table>`;
+        }
+
+        function generatePivots(start, end, key, targetDiv, tableId, label, periods, onlyActive=false) {
+            const targets = ['Eletricista','Estudante','Eletrotécnico','Engenheiro Eletricista','Outro','Engenheiro Civil','Arquiteto'];
+            if(reportMode === 'weekly' && !targetDiv.includes('dash')) {
+                const days = []; let c = new Date(start); while(c<=end) { days.push(new Date(c)); c.setDate(c.getDate()+1); }
+                const matrix = {}; 
+                rawUsuarios.forEach(u => {
+                    const d = parseDateBR(u['data_criacao_usuario (Data)']);
+                    if(d && d >= start && d <= end && isUserValid(u)) {
+                        let k = u[key] || '(vazio)'; 
+                        if(key === 'profissao') { const cleanK = k.trim(); const match = targets.find(t=>t.toLowerCase() === cleanK.toLowerCase()); k = match ? match : 'Profissão customizada'; }
+                        const dk = d.toLocaleDateString('pt-BR');
+                        if(!matrix[k]) matrix[k] = {total:0}; if(!matrix[k][dk]) matrix[k][dk]=0; matrix[k][dk]++; matrix[k].total++;
+                    }
+                });
+                let html = `<table id="${tableId}"><thead><tr><th>${label}</th>`;
+                days.forEach(d => html += `<th>${d.toLocaleDateString('pt-BR').slice(0,5)}</th>`);
+                html += `<th>Total</th></tr></thead><tbody>`;
+                Object.keys(matrix).sort((a,b)=>matrix[b].total-matrix[a].total).forEach(k => {
+                    html += `<tr><td>${k}</td>`;
+                    days.forEach(d => html += `<td>${matrix[k][d.toLocaleDateString('pt-BR')]||0}</td>`);
+                    html += `<td class="font-bold text-[var(--text-primary)]">${matrix[k].total}</td></tr>`;
+                });
+                document.getElementById(targetDiv).innerHTML = html + `</tbody></table>`;
+            } else {
+                const data = {};
+                periods.forEach((p, i) => {
+                    rawUsuarios.forEach(u => {
+                        const d = parseDateBR(u['data_criacao_usuario (Data)']);
+                        if(d && d >= p.start && d <= p.end && isUserValid(u)) {
+                            let k = u[key] || '(vazio)'; 
+                            if(key === 'profissao') { const cleanK = k.trim(); const match = targets.find(t=>t.toLowerCase() === cleanK.toLowerCase()); k = match ? match : 'Profissão customizada'; }
+                            if(!data[k]) data[k]={p0:0,p1:0,p2:0}; data[k]['p'+i]++;
+                        }
+                    });
+                });
+                let rows = Object.keys(data).map(k=>({key:k, ...data[k]})).sort((a,b)=>b.p0-a.p0);
+                if(onlyActive || (reportMode === 'monthly' && key === 'utm_campaign')) { rows = rows.filter(r=>r.p0>0); }
+                let html = `<table id="${tableId}"><thead><tr><th>${label}</th><th>${periods[2].label}</th><th>${periods[1].label}</th><th>${periods[0].label}</th></tr></thead><tbody>`;
+                rows.forEach(r => html += `<tr><td>${r.key}</td><td>${r.p2}</td><td>${r.p1}</td><td class="font-bold text-[var(--text-primary)]">${r.p0}</td></tr>`);
+                document.getElementById(targetDiv).innerHTML = html + `</tbody></table>`;
+            }
+        }
+
+        function generateConversao(start, end) {
+            const transMap = {}; rawTransacoes.forEach(t => { const e = t['username']; if(!transMap[e]) transMap[e]=[]; transMap[e].push(t); });
+            let html = `<table id="tableConversao"><thead><tr><th>Email</th><th>Data Transação</th><th>Plano</th><th>Origem</th><th>Valor</th></tr></thead><tbody>`;
+            let count = 0;
+            rawUsuarios.forEach(u => {
+                const d = parseDateBR(u['data_criacao_usuario (Data)']);
+                if(d && d >= start && d <= end && isUserValid(u)) {
+                    const txs = transMap[u['username']];
+                    if(txs) {
+                        txs.forEach(t => {
+                            const dt = parseDateBR(t['data_transacao (Data)']);
+                            if(dt && dt >= start && dt <= end) {
+                                html += `<tr><td class="text-xs text-[var(--text-secondary)]">${u['username']}</td><td>${t['data_transacao (Data)']}</td><td>${t['Plano']}</td><td>${u['utm_medium']||'-'}</td><td class="font-bold">${formatMoney(parseMoney(t['valor']))}</td></tr>`;
+                                count++;
+                            }
+                        });
+                    }
+                }
+            });
+            document.getElementById('renderConversao').innerHTML = html + `</tbody></table><div class="text-xs mt-2 text-right opacity-60">Registros: ${count}</div>`;
+        }
+
+        function generateDistribuicaoVendas(start, end, periods, targetId='renderDistVendas') {
+            const transMap = {}; rawTransacoes.forEach(t => { const e = t['username']; if(!transMap[e]) transMap[e]=[]; transMap[e].push(t); });
+            if(reportMode === 'weekly') {
+                const counts = {};
+                rawUsuarios.forEach(u => {
+                    const d = parseDateBR(u['data_criacao_usuario (Data)']);
+                    if(d && d >= start && d <= end && isUserValid(u)) {
+                        const txs = transMap[u['username']];
+                        if(txs) txs.forEach(t => { const dt = parseDateBR(t['data_transacao (Data)']); if(dt && dt >= start && dt <= end) counts[t['Plano']] = (counts[t['Plano']]||0)+1; });
+                    }
+                });
+                let html = `<table id="tableDistVendas"><thead><tr><th>Plano</th><th>Qtd</th></tr></thead><tbody>`;
+                Object.keys(counts).sort().forEach(k => html += `<tr><td>${k}</td><td>${counts[k]}</td></tr>`);
+                document.getElementById(targetId).innerHTML = html + `</tbody></table>`;
+            } else {
+                const data = {};
+                periods.forEach((p, i) => {
+                    rawUsuarios.forEach(u => {
+                        const d = parseDateBR(u['data_criacao_usuario (Data)']);
+                        if(d && d >= p.start && d <= p.end && isUserValid(u)) {
+                            const txs = transMap[u['username']];
+                            if(txs) txs.forEach(t => { const dt = parseDateBR(t['data_transacao (Data)']); if(dt && dt >= p.start && dt <= p.end) { const k = t['Plano']; if(!data[k]) data[k]={p0:0,p1:0,p2:0}; data[k]['p'+i]++; } });
+                        }
+                    });
+                });
+                const rows = Object.keys(data).map(k => ({key:k, ...data[k]})).sort((a,b)=>b.p0-a.p0);
+                let html = `<table id="tableDistVendas"><thead><tr><th>Plano</th><th>${periods[2].label}</th><th>${periods[1].label}</th><th>${periods[0].label}</th></tr></thead><tbody>`;
+                rows.forEach(r => html += `<tr><td>${r.key}</td><td>${r.p2}</td><td>${r.p1}</td><td class="font-bold text-[var(--text-primary)]">${r.p0}</td></tr>`);
+                document.getElementById(targetId).innerHTML = html + `</tbody></table>`;
+            }
+        }
+
+        function generatePlanos(start, end, periods, targetId='renderPlanos') {
+            if(reportMode === 'weekly') {
+                const counts = {};
+                rawUsuarios.forEach(u => {
+                    const d = parseDateBR(u['data_criacao_usuario (Data)']);
+                    if(d && d >= start && d <= end && isUserValid(u)) { const p = u['current_plan_detail'] || 'Gratuito'; counts[p] = (counts[p]||0)+1; }
+                });
+                let html = `<table id="tablePlanos"><thead><tr><th>Plano</th><th>Qtd</th></tr></thead><tbody>`;
+                Object.keys(counts).sort().forEach(k => html += `<tr><td>${k}</td><td>${counts[k]}</td></tr>`);
+                document.getElementById(targetId).innerHTML = html + `</tbody></table>`;
+            } else {
+                const data = {};
+                periods.forEach((p, i) => {
+                    rawUsuarios.forEach(u => {
+                        const d = parseDateBR(u['data_criacao_usuario (Data)']);
+                        if(d && d >= p.start && d <= p.end && isUserValid(u)) { const k = u['current_plan_detail'] || 'Gratuito'; if(!data[k]) data[k]={p0:0,p1:0,p2:0}; data[k]['p'+i]++; }
+                    });
+                });
+                const rows = Object.keys(data).map(k => ({key:k, ...data[k]})).sort((a,b)=>b.p0-a.p0);
+                let html = `<table id="tablePlanos"><thead><tr><th>Plano</th><th>${periods[2].label}</th><th>${periods[1].label}</th><th>${periods[0].label}</th></tr></thead><tbody>`;
+                rows.forEach(r => html += `<tr><td>${r.key}</td><td>${r.p2}</td><td>${r.p1}</td><td class="font-bold text-[var(--text-primary)]">${r.p0}</td></tr>`);
+                document.getElementById(targetId).innerHTML = html + `</tbody></table>`;
+            }
+        }
+
+        function generateHistoricoMensal(start, targetHistId='renderHistorico', targetVelId='renderVelocidade') {
+            const periods = reportMode === 'monthly' ? getComparisonPeriods(start, 'monthly') : (() => {
+                const w = []; let curr = new Date(start); 
+                const month = start.getMonth(); let it = new Date(start.getFullYear(), month, 1);
+                while (it.getDay() !== 0) { it.setDate(it.getDate() + 1); }
+                const endMonth = new Date(start.getFullYear(), month+1, 0);
+                while(it <= endMonth) { let e = new Date(it); e.setDate(e.getDate()+6); e.setHours(23,59,59,999); w.push({start:new Date(it), end:e, label:`${it.toLocaleDateString('pt-BR')} a ${e.toLocaleDateString('pt-BR')}`}); it.setDate(it.getDate()+7); }
+                return w;
+            })();
+            const transMap = {}; rawTransacoes.forEach(t => { const e = t['username']; if(!transMap[e]) transMap[e]=[]; transMap[e].push(t); });
+            let htmlHist = `<table id="tableHistorico"><thead><tr><th>Período</th><th>Até 7 Dias</th><th>Até 30 Dias</th><th>Após 30 Dias</th></tr></thead><tbody>`;
+            let htmlVel = `<table id="tableVelocidade"><thead><tr><th>Período</th>`;
+            for(let i=0; i<=30; i++) htmlVel += `<th class="cohort-header">${i}</th>`; htmlVel += `</tr></thead><tbody>`;
+            periods.forEach(p => {
+                let conv7=0, conv30=0, convAfter=0; const daily = new Array(31).fill(0);
+                const users = rawUsuarios.filter(u => { const d = parseDateBR(u['data_criacao_usuario (Data)']); return d && d >= p.start && d <= p.end && isUserValid(u); });
+                users.forEach(u => {
+                    const txs = transMap[u['username']];
+                    if(txs) {
+                        txs.sort((a,b) => parseDateBR(a['data_transacao (Data)']) - parseDateBR(b['data_transacao (Data)']));
+                        const d1 = parseDateBR(txs[0]['data_transacao (Data)']);
+                        const diff = Math.floor((d1 - parseDateBR(u['data_criacao_usuario (Data)']))/(86400000));
+                        if(diff<=7) { conv7++; conv30++; } else if(diff<=30) conv30++; else convAfter++;
+                        if(diff>=0 && diff<=30) daily[diff]++;
+                    }
+                });
+                const tot = users.length || 1; 
+                htmlHist += `<tr><td class="capitalize">${p.label}</td><td class="font-bold">${((conv7/tot)*100).toFixed(2)}%</td><td class="font-bold">${((conv30/tot)*100).toFixed(2)}%</td><td class="font-bold">${((convAfter/tot)*100).toFixed(2)}%</td></tr>`;
+                htmlVel += `<tr><td style="white-space:nowrap; font-size:0.75rem;">${p.label}</td>`;
+                daily.forEach(v => { const s = v>0 ? `background-color:rgba(255,136,0,0.15);font-weight:bold;color:var(--text-primary);` : `color:var(--text-faint);`; htmlVel += `<td class="cohort-cell" style="${s}">${v||'-'}</td>`; });
+                htmlVel += `</tr>`;
+            });
+            document.getElementById(targetHistId).innerHTML = htmlHist + `</tbody></table>`;
+            document.getElementById(targetVelId).innerHTML = htmlVel + `</tbody></table>`;
+        }
+
+        // --- DASHBOARD FUNCTIONS ---
+        function calcAcquisitionKPIs(start, end) {
+            let tot=0, val=0; rawUsuarios.forEach(u => { const d = parseDateBR(u['data_criacao_usuario (Data)']); if(d && d >= start && d <= end) { tot++; if(isUserValid(u)) val++; } });
+            document.getElementById('kpiTotalRegisters').innerText = tot;
+            document.getElementById('kpiTotalValidated').innerText = val;
+            document.getElementById('kpiPercValidated').innerText = tot ? ((val/tot)*100).toFixed(1)+'%' : '0%';
+        }
+
+        function generateDashboardMedium(periods) {
+            const data = {};
+            periods.forEach((p, i) => { rawUsuarios.forEach(u => { const d = parseDateBR(u['data_criacao_usuario (Data)']); if(d && d >= p.start && d <= p.end && isUserValid(u)) { const m = u['utm_medium']||'(not set)'; if(!data[m]) data[m]={p0:0,p1:0,p2:0}; data[m]['p'+i]++; } }); });
+            const rows = Object.keys(data).map(k=>({medium:k, ...data[k]})).filter(r=>r.p0>0).sort((a,b)=>b.p0-a.p0);
+            let html = `<table id="tableDashMedium"><thead><tr><th>Medium</th><th>${periods[2].label}</th><th>${periods[1].label}</th><th>${periods[0].label}</th></tr></thead><tbody>`;
+            let grow={n:'-',v:-999}, drop={n:'-',v:999};
+            rows.forEach(r => {
+                html += `<tr><td>${r.medium}</td><td>${r.p2}</td><td>${r.p1}</td><td class="font-bold text-[var(--text-primary)]">${r.p0}</td></tr>`;
+                const diff = r.p1===0 ? 100 : ((r.p0-r.p1)/r.p1)*100;
+                if(diff > grow.v) grow = {n:r.medium, v:diff}; if(diff < drop.v) drop = {n:r.medium, v:diff};
+            });
+            document.getElementById('dashMediumTable').innerHTML = html + `</tbody></table>`;
+            document.getElementById('kpiMedGrowthName').innerText = grow.n; document.getElementById('kpiMedGrowthVal').innerText = grow.v===100 && rows.find(r=>r.medium===grow.n)?.p1===0 ? 'Novo (100%)' : `+${grow.v.toFixed(1)}%`;
+            document.getElementById('kpiMedDropName').innerText = drop.v!==999 ? drop.n : '-'; document.getElementById('kpiMedDropVal').innerText = drop.v!==999 ? drop.v.toFixed(1)+'%' : '-';
+        }
+
+        function generateDashboardSales(start, end, periods) {
+            const transMap = {}; rawTransacoes.forEach(t => { const e = t['username']; if(!transMap[e]) transMap[e]=[]; transMap[e].push(t); });
+            const data = {}; let totRev=0, count=0; const planCounts={};
+            periods.forEach((p, i) => {
+                rawUsuarios.forEach(u => {
+                    const d = parseDateBR(u['data_criacao_usuario (Data)']);
+                    if(d && d >= p.start && d <= p.end && isUserValid(u)) {
+                        const txs = transMap[u['username']];
+                        if(txs) txs.forEach(t => {
+                            const dt = parseDateBR(t['data_transacao (Data)']);
+                            if(dt && dt >= p.start && dt <= p.end) {
+                                const k = t['Plano']; if(!data[k]) data[k]={p0:0,p1:0,p2:0}; data[k]['p'+i]++;
+                                if(p.isCurrent) { totRev += parseMoney(t['valor']); count++; planCounts[k]=(planCounts[k]||0)+1; }
+                            }
+                        });
+                    }
+                });
+            });
+            const rows = Object.keys(data).map(k=>({key:k, ...data[k]})).sort((a,b)=>b.p0-a.p0);
+            let html = `<table id="tableDashSales"><thead><tr><th>Plano</th><th>${periods[2].label}</th><th>${periods[1].label}</th><th>${periods[0].label}</th></tr></thead><tbody>`;
+            rows.forEach(r => html += `<tr><td>${r.key}</td><td>${r.p2}</td><td>${r.p1}</td><td class="font-bold text-[var(--text-primary)]">${r.p0}</td></tr>`);
+            document.getElementById('dashSalesTable').innerHTML = html + `</tbody></table>`;
+            
+            let best='-', max=0; Object.keys(planCounts).forEach(k=>{if(planCounts[k]>max){max=planCounts[k]; best=k;}});
+            document.getElementById('kpiBestPlan').innerText = best;
+            document.getElementById('kpiRevenue').innerText = formatMoney(totRev);
+            document.getElementById('kpiTicket').innerText = count>0 ? formatMoney(totRev/count) : 'R$ 0,00';
+        }
+
+        function generateDashboardProfession(start, end, periods) {
+            const data = {}; const targets = ['Eletricista','Estudante','Eletrotécnico','Engenheiro Eletricista','Outro','Engenheiro Civil','Arquiteto'];
+            periods.forEach((p, i) => {
+                rawUsuarios.forEach(u => {
+                    const d = parseDateBR(u['data_criacao_usuario (Data)']);
+                    if(d && d >= p.start && d <= p.end && isUserValid(u)) {
+                        let k = u['profissao']||'(vazio)'; const m = targets.find(t=>t.toLowerCase()===k.trim().toLowerCase()); k = m || 'Profissão customizada';
+                        if(!data[k]) data[k]={p0:0,p1:0,p2:0}; data[k]['p'+i]++;
+                    }
+                });
+            });
+            const rows = Object.keys(data).map(k=>({key:k, ...data[k]})).sort((a,b)=>b.p0-a.p0).filter(r=>r.p0>0);
+            let html = `<table id="tableDashProf"><thead><tr><th>Profissão</th><th>${periods[2].label}</th><th>${periods[1].label}</th><th>${periods[0].label}</th></tr></thead><tbody>`;
+            let grow={n:'-',v:-999}, drop={n:'-',v:999};
+            rows.forEach(r => {
+                html += `<tr><td>${r.key}</td><td>${r.p2}</td><td>${r.p1}</td><td class="font-bold text-[var(--text-primary)]">${r.p0}</td></tr>`;
+                const diff = r.p1===0 ? 100 : ((r.p0-r.p1)/r.p1)*100;
+                if(diff > grow.v) grow = {n:r.key, v:diff}; if(diff < drop.v) drop = {n:r.key, v:diff};
+            });
+            document.getElementById('dashProfessionTable').innerHTML = html + `</tbody></table>`;
+            document.getElementById('kpiProfGrowthName').innerText = grow.n; document.getElementById('kpiProfGrowthVal').innerText = grow.v===100 && rows.find(r=>r.key===grow.n)?.p1===0 ? 'Novo (100%)' : `+${grow.v.toFixed(1)}%`;
+            document.getElementById('kpiProfDropName').innerText = drop.v!==999 ? drop.n : '-'; document.getElementById('kpiProfDropVal').innerText = drop.v!==999 ? drop.v.toFixed(1)+'%' : '-';
+        }
+        
+        function generateEmailTable(start, end) {
+            const emailsInWeek = rawEmails.filter(e => { const d = parseDateBrevo(e['Sending date']); return d && d >= start && d <= end; });
+            emailsInWeek.sort((a,b) => parseDateBrevo(a['Sending date']) - parseDateBrevo(b['Sending date']));
+            let html = `<table id="tableEmails"><thead><tr><th>Data</th><th>Nome da Campanha</th><th>Assunto</th><th>Enviados</th><th>Entregues</th><th>Taxa de Abertura</th><th>CTOR</th><th>Descadastrados</th></tr></thead><tbody>`;
+            if (emailsInWeek.length === 0) { html += `<tr><td colspan="8" class="text-center py-4" style="color: var(--text-secondary);">Nenhuma campanha encontrada neste período.</td></tr>`; } 
+            else {
+                emailsInWeek.forEach(e => {
+                    const d = parseDateBrevo(e['Sending date']);
+                    const fmtDate = d.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'});
+                    const fmtNum = (val) => { const n = parseInt(val); return isNaN(n) ? val : n.toLocaleString('pt-BR'); };
+                    const fmtMetric = (rate, count, rateColorClass = "") => { return `<span class="${rateColorClass}">${rate}</span> <span class="text-xs" style="color: var(--text-secondary);">(${fmtNum(count)})</span>`; };
+                    const subject = e['Subject'] ? e['Subject'] : '<span class="accent-text" style="font-style: italic;">[Teste A/B]</span>';
+                    html += `<tr><td>${fmtDate}</td><td class="text-xs">${e['Campaign Name']}</td><td class="text-xs" style="color: var(--text-secondary); italic">${subject}</td><td>${fmtNum(e['Sent'])}</td><td>${fmtMetric(e['Delivered rate'], e['Delivered'])}</td><td>${fmtMetric(e['Trackable open rate'], e['Opens'], 'font-bold')}</td><td>${fmtMetric(e['Click-to-Open rate'], e['Clicked'], 'font-bold')}</td><td>${fmtMetric(e['Unsubscription rate'], e['Unsubscribed'])}</td></tr>`;
+                });
+            }
+            document.getElementById('renderEmails').innerHTML = html + `</tbody></table>`;
+        }
+        
+        function generateEmailTrend(currentWeekStart, mode, targetId='renderEmailSemanal') {
+             const periods = [];
+             const iterations = mode === 'weekly' ? 8 : 3;
+             for (let i = 0; i < iterations; i++) {
+                 let pStart, pEnd;
+                 if (mode === 'weekly') { pStart = new Date(currentWeekStart); pStart.setDate(pStart.getDate() - (7 * i)); pEnd = new Date(pStart); pEnd.setDate(pEnd.getDate() + 6); } 
+                 else { pStart = new Date(currentWeekStart); pStart.setMonth(pStart.getMonth() - i); pEnd = new Date(pStart); pEnd.setMonth(pEnd.getMonth() + 1); pEnd.setDate(0); }
+                 pEnd.setHours(23, 59, 59, 999);
+                 periods.push({ start: pStart, end: pEnd });
+             }
+             periods.reverse();
+            let html = `<table id="tableEmailSemanal"><thead><tr><th>Período</th><th>Enviados</th><th>Entregues</th><th>Taxa de Abertura</th><th>CTOR</th><th>Descadastrados</th></tr></thead><tbody>`;
+            periods.forEach(p => {
+                const emailsInPeriod = rawEmails.filter(e => { const d = parseDateBrevo(e['Sending date']); return d && d >= p.start && d <= p.end; });
+                const stats = calculateEmailStats(emailsInPeriod);
+                const fmtNum = (n) => n.toLocaleString('pt-BR');
+                const fmtMetric = (rate, count, rateColorClass = "") => { return `<span class="${rateColorClass}">${rate.toFixed(2)}%</span> <span class="text-xs" style="color: var(--text-secondary);">(${fmtNum(count)})</span>`; };
+                let label;
+                if (mode === 'monthly') { label = p.start.toLocaleString('pt-BR', {month: 'long', year: 'numeric'}); } 
+                else { const fmtDate = d => d.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'}); label = `${fmtDate(p.start)} a ${fmtDate(p.end)}`; }
+                if (mode === 'monthly' || stats.sent > 0) {
+                     html += `<tr><td class="capitalize">${label}</td><td>${fmtNum(stats.sent)}</td><td>${fmtNum(stats.delivered)}</td><td>${fmtMetric(stats.openRate, stats.uniqueOpensCount, 'font-bold')}</td><td>${fmtMetric(stats.ctor, stats.uniqueClicksCount, 'font-bold')}</td><td>${fmtMetric(stats.unsubRate, stats.unsubCount)}</td></tr>`;
+                }
+            });
+            const container = document.getElementById(targetId);
+            if(container) container.innerHTML = html + `</tbody></table>`;
+        }
+
+        // --- EMAIL KPI CALCULATIONS ---
+        function calculateEmailStats(emails) {
+            let sent = 0, delivered = 0, weightOpen = 0, weightClick = 0, weightUnsub = 0;
+            emails.forEach(e => {
+                const s = parseInt(e['Sent']) || 0;
+                const d = parseInt(e['Delivered']) || 0;
+                sent += s; delivered += d;
+                const openRateVal = parseRate(e['Trackable open rate']); 
+                const ctorVal = parseRate(e['Click-to-Open rate']);
+                const unsubVal = parseRate(e['Unsubscription rate']);
+                const uniqueOpens = d * (openRateVal / 100);
+                const uniqueClicks = uniqueOpens * (ctorVal / 100);
+                const unsubs = d * (unsubVal / 100);
+                weightOpen += uniqueOpens; weightClick += uniqueClicks; weightUnsub += unsubs;
+            });
+            return {
+                sent, delivered, count: emails.length,
+                openRate: delivered > 0 ? (weightOpen / delivered) * 100 : 0,
+                ctor: weightOpen > 0 ? (weightClick / weightOpen) * 100 : 0,
+                unsubRate: delivered > 0 ? (weightUnsub / delivered) * 100 : 0,
+                uniqueOpensCount: Math.round(weightOpen), 
+                uniqueClicksCount: Math.round(weightClick),
+                unsubCount: Math.round(weightUnsub)
+            };
+        }
+
+        function calcEmailKPIs(periods) {
+            const emails0 = rawEmails.filter(e => { const d = parseDateBrevo(e['Sending date']); return d && d >= periods[0].start && d <= periods[0].end; });
+            const s0 = calculateEmailStats(emails0);
+            
+            const emails1 = rawEmails.filter(e => { const d = parseDateBrevo(e['Sending date']); return d && d >= periods[1].start && d <= periods[1].end; });
+            const s1 = calculateEmailStats(emails1);
+
+            const trend = (curr, prev, isPercent=false) => {
+                const diff = curr - prev;
+                const icon = diff >= 0 ? '<i data-lucide="arrow-up" class="w-3 h-3"></i>' : '<i data-lucide="arrow-down" class="w-3 h-3"></i>';
+                const color = diff >= 0 ? 'trend-up' : 'trend-down';
+                return `<span class="${color} flex items-center gap-1">${icon} ${Math.abs(diff).toLocaleString('pt-BR', {maximumFractionDigits:2})}${isPercent?'pp':''}</span>`;
+            };
+
+            document.getElementById('dashEmailCount').innerText = s0.count;
+            document.getElementById('dashEmailTrendCount').innerHTML = trend(s0.count, s1.count) + ' vs mês anterior';
+
+            document.getElementById('dashEmailSent').innerText = s0.sent.toLocaleString('pt-BR');
+            document.getElementById('dashEmailTrendSent').innerHTML = trend(s0.sent, s1.sent) + ' vs mês anterior';
+
+            document.getElementById('dashEmailOpen').innerText = s0.openRate.toFixed(2) + '%';
+            document.getElementById('dashEmailTrendOpen').innerHTML = trend(s0.openRate, s1.openRate, true) + ' vs mês anterior';
+
+            document.getElementById('dashEmailCTOR').innerText = s0.ctor.toFixed(2) + '%';
+            document.getElementById('dashEmailTrendCTOR').innerHTML = trend(s0.ctor, s1.ctor, true) + ' vs mês anterior';
+
+            document.getElementById('dashEmailUnsub').innerText = s0.unsubRate.toFixed(2) + '%';
+            document.getElementById('dashEmailTrendUnsub').innerHTML = trend(s0.unsubRate, s1.unsubRate, true) + ' vs mês anterior';
+            
+            lucide.createIcons();
+        }
+
+        function generateEmailRankings(start, end) {
+            const emails = rawEmails.filter(e => { const d = parseDateBrevo(e['Sending date']); return d && d >= start && d <= end; });
+            
+            const list = emails.map(e => {
+                return {
+                    name: e['Campaign Name'],
+                    subject: e['Subject'] || '(Sem Assunto)',
+                    date: e['Sending date'], 
+                    openRate: parseRate(e['Trackable open rate'] || e['Open rate']),
+                    ctor: parseRate(e['Click-to-Open rate'])
+                };
+            });
+
+            const topOpen = [...list].sort((a,b) => b.openRate - a.openRate).slice(0,3);
+            let htmlOpen = '';
+            topOpen.forEach((item, i) => {
+                htmlOpen += `
+                <div class="rank-card glass-panel p-4 flex justify-between items-center">
+                    <div class="flex-1 min-w-0 pr-4">
+                        <div class="text-xs uppercase tracking-wide opacity-70 mb-1 flex items-center gap-2">
+                            <span class="font-bold">#${i+1}</span> <span>${item.date}</span>
+                        </div>
+                        <div class="font-medium truncate text-sm" title="${item.name}">${item.name}</div>
+                        <div class="text-xs opacity-50 truncate italic">${item.subject}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-lg font-bold" style="color: var(--chart-blue);">${item.openRate.toFixed(2)}%</div>
+                        <div class="text-[10px] opacity-50">Abertura</div>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('dashTopOpenList').innerHTML = htmlOpen || '<div class="text-sm opacity-50 p-4">Sem dados.</div>';
+
+            const topCTOR = [...list].sort((a,b) => b.ctor - a.ctor).slice(0,3);
+            let htmlCTOR = '';
+            topCTOR.forEach((item, i) => {
+                htmlCTOR += `
+                <div class="rank-card glass-panel p-4 flex justify-between items-center" style="border-left-color: #4ade80;">
+                    <div class="flex-1 min-w-0 pr-4">
+                        <div class="text-xs uppercase tracking-wide opacity-70 mb-1 flex items-center gap-2">
+                            <span class="font-bold">#${i+1}</span> <span>${item.date}</span>
+                        </div>
+                        <div class="font-medium truncate text-sm" title="${item.name}">${item.name}</div>
+                        <div class="text-xs opacity-50 truncate italic">${item.subject}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-lg font-bold" style="color: var(--chart-green);">${item.ctor.toFixed(2)}%</div>
+                        <div class="text-[10px] opacity-50">CTOR</div>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('dashTopCTORList').innerHTML = htmlCTOR || '<div class="text-sm opacity-50 p-4">Sem dados.</div>';
+        }
+
         function generateScoringTables(start, mode) {
             const periods = getComparisonPeriods(start, mode);
-            
             generateGeneralScoreComparison(periods);
-
             const renderTable = (groupByKey, targetId, tableId, label, isSourceMedium = false) => {
                 const data = {};
-                
-                periods.forEach((p, idx) => {
-                     const pKey = idx; // 0 = current, 1 = prev, 2 = prev2
-                     const filteredRows = rawScoring.filter(row => {
-                        const d = parseDateBR(row['DATA_CRIACAO_CONTA']);
-                        return d && d >= p.start && d <= p.end;
-                     });
+                const targets = ['Eletricista','Estudante','Eletrotécnico','Engenheiro Eletricista','Outro','Engenheiro Civil','Arquiteto'];
 
+                periods.forEach((p, idx) => {
+                     const pKey = idx; 
+                     const filteredRows = rawScoring.filter(row => { const d = parseDateBR(row['DATA_CRIACAO_CONTA']); return d && d >= p.start && d <= p.end; });
                      const groups = {};
                      filteredRows.forEach(row => {
                          let key;
-                         if (isSourceMedium) {
-                             const s = row['PRIMEIRA_UTM_SOURCE'] || '-';
-                             const m = row['PRIMEIRA_UTM_MEDIUM'] || '-';
-                             const cleanS = s === '' ? '-' : s;
-                             const cleanM = m === '' ? '-' : m;
-                             key = `${cleanS} / ${cleanM}`;
-                         } else {
+                         if (isSourceMedium) { const s = row['PRIMEIRA_UTM_SOURCE'] || '-'; const m = row['PRIMEIRA_UTM_MEDIUM'] || '-'; key = `${s === '' ? '-' : s} / ${m === '' ? '-' : m}`; } 
+                         else { 
                              key = row[groupByKey] || '(vazio)';
-                             if (key === '') key = '(vazio)';
+                             if (groupByKey === 'PROFISSAO') {
+                                 const cleanK = key.trim();
+                                 const match = targets.find(t=>t.toLowerCase() === cleanK.toLowerCase());
+                                 key = match ? match : 'Profissão customizada';
+                             }
+                             if (key === '') key = '(vazio)'; 
                          }
                          const score = parseFloat(row['SCORE']) || 0;
                          if(!groups[key]) groups[key] = [];
                          groups[key].push(score);
                      });
-
-                     Object.keys(groups).forEach(k => {
-                         if(!data[k]) data[k] = { 0: {mean:0, median:0}, 1: {mean:0, median:0}, 2: {mean:0, median:0} };
-                         data[k][pKey] = calculateMeanMedian(groups[k]);
-                     });
+                     Object.keys(groups).forEach(k => { if(!data[k]) data[k] = { 0: {mean:0, median:0}, 1: {mean:0, median:0}, 2: {mean:0, median:0} }; data[k][pKey] = calculateMeanMedian(groups[k]); });
                 });
-
                 const rows = Object.keys(data).map(k => ({ key: k, ...data[k] }));
-                
-                // Sort by Current Period Mean Descending
                 rows.sort((a, b) => parseFloat(b[0].mean) - parseFloat(a[0].mean));
-
-                let html = `<table id="${tableId}"><thead>
-                    <tr>
-                        <th>${label}</th>
-                        <th>${periods[2].label}</th>
-                        <th>${periods[1].label}</th>
-                        <th>${periods[0].label}</th>
-                    </tr></thead><tbody>`;
+                let html = `<table id="${tableId}"><thead><tr><th>${label}</th><th>${periods[periods.length-1].label}</th><th>${periods[periods.length-2].label}</th><th>${periods[0].label}</th></tr></thead><tbody>`;
                 
-                if (rows.length === 0) {
-                    html += `<tr><td colspan="4" class="text-center py-4" style="color: var(--text-secondary);">Sem dados.</td></tr>`;
-                } else {
+                if (rows.length === 0) { html += `<tr><td colspan="4" class="text-center py-4" style="color: var(--text-secondary);">Sem dados.</td></tr>`; } 
+                else {
                     rows.forEach(r => {
-                        // Helper to render stats cell
-                        // REVERTED: Using Div wrapper for layout stability, but with simplified styling
-                        const cell = (stats) => {
-                            if(!stats || stats.mean == 0) return `<span class="text-xs opacity-30">-</span>`;
-                            return `<span class="font-bold">${stats.mean}</span><br><span class="text-xs" style="color: var(--text-secondary);">Med: ${stats.median}</span>`;
-                        };
-
-                        html += `<tr>
-                            <td class="font-medium">${r.key}</td>
-                            <td>${cell(r[2])}</td>
-                            <td>${cell(r[1])}</td>
-                            <td style="background-color: var(--table-hover);">${cell(r[0])}</td>
-                        </tr>`;
+                        const cell = (stats) => { if(!stats || stats.mean == 0) return `<span class="text-xs opacity-30">-</span>`; return `<span class="font-bold">${stats.mean}</span><br><span class="text-xs" style="color: var(--text-secondary);">Med: ${stats.median}</span>`; };
+                        html += `<tr><td class="font-medium">${r.key}</td><td>${cell(r[2])}</td><td>${cell(r[1])}</td><td style="background-color: var(--table-hover);">${cell(r[0])}</td></tr>`;
                     });
                 }
-                html += `</tbody></table>`;
-                document.getElementById(targetId).innerHTML = html;
+                document.getElementById(targetId).innerHTML = html + `</tbody></table>`;
             };
-
             renderTable('PLANO_DETALHE', 'renderScorePlano', 'tableScorePlano', 'Plano Detalhado');
             renderTable(null, 'renderScoreOrigem', 'tableScoreOrigem', 'Origem / Mídia', true);
             renderTable('PRIMEIRA_UTM_CAMPAIGN', 'renderScoreCampanha', 'tableScoreCampanha', 'Campanha');
@@ -1095,786 +1489,165 @@
 
         function generateGeneralScoreComparison(periods) {
             let html = `<table id="tableScoreGeral"><thead><tr><th>Período</th><th>Média Geral</th><th>Mediana Geral</th></tr></thead><tbody>`;
-
             periods.forEach(p => {
                 const periodScores = [];
-                rawScoring.forEach(row => {
-                    const d = parseDateBR(row['DATA_CRIACAO_CONTA']);
-                    if (d && d >= p.start && d <= p.end) {
-                        periodScores.push(parseFloat(row['SCORE']) || 0);
-                    }
-                });
-
+                rawScoring.forEach(row => { const d = parseDateBR(row['DATA_CRIACAO_CONTA']); if (d && d >= p.start && d <= p.end) { periodScores.push(parseFloat(row['SCORE']) || 0); } });
                 const stats = calculateMeanMedian(periodScores);
                 const fmtDate = d => d.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'});
-                
                 const rowStyle = p.isCurrent ? 'font-weight: bold; background-color: rgba(255, 136, 0, 0.1);' : '';
                 const labelColor = p.isCurrent ? 'text-green-400' : 'text-gray-400';
-                
-                // Label handling for monthly vs weekly
-                let displayLabel;
-                let subLabel = "";
-
-                if(reportMode === 'monthly') {
-                     displayLabel = p.label; // Already formatted as "Month of Year" in getComparisonPeriods
-                     subLabel = ""; 
-                } else {
-                     // Weekly: User wants just the date range
-                     displayLabel = `${fmtDate(p.start)} a ${fmtDate(p.end)}`;
-                     subLabel = ""; // No "Semana Atual" text
-                }
-
-                html += `<tr style="${rowStyle}">
-                    <td>
-                        <span class="${labelColor}">${displayLabel}</span>
-                        ${subLabel}
-                    </td>
-                    <td class="text-lg font-bold">${stats.mean}</td>
-                    <td class="text-lg font-bold" style="color: var(--woca-orange);">${stats.median}</td>
-                </tr>`;
+                let displayLabel = reportMode === 'monthly' ? p.label : `${fmtDate(p.start)} a ${fmtDate(p.end)}`;
+                html += `<tr style="${rowStyle}"><td><span class="${labelColor}">${displayLabel}</span></td><td class="text-lg font-bold">${stats.mean}</td><td class="text-lg font-bold" style="color: var(--woca-orange);">${stats.median}</td></tr>`;
             });
-
-            html += `</tbody></table>`;
-            document.getElementById('renderScoreGeral').innerHTML = html;
-        }
-
-        // --- Existing Generators (Acquisition & Email) ---
-        
-        function generateAquisicao(periods) {
-            // periods = [Current, Prev1, Prev2]
-            // Map Counts per period per medium
-            const data = {}; // { medium: { p0: 0, p1: 0, p2: 0 } }
-            
-            periods.forEach((p, idx) => {
-                const pKey = 'p' + idx;
-                rawUsuarios.forEach(u => {
-                    const d = parseDateBR(u['data_criacao_usuario (Data)']);
-                    if (d && d >= p.start && d <= p.end && isUserValid(u)) {
-                        const medium = u['utm_medium'] || '(not set)';
-                        if (!data[medium]) data[medium] = { p0: 0, p1: 0, p2: 0 };
-                        data[medium][pKey]++;
-                    }
-                });
-            });
-
-            const rows = Object.keys(data).map(m => {
-                return { medium: m, ...data[m] };
-            }).filter(r => r.p0 > 0 || r.p1 > 0 || r.p2 > 0).sort((a,b) => b.p0 - a.p0);
-
-            // Dynamic Headers
-            const h0 = periods[0].label;
-            const h1 = periods[1].label;
-            const h2 = reportMode === 'monthly' ? periods[2].label : 'Variação'; 
-            
-            let html = `<table id="tableAquisicao"><thead><tr><th>Medium</th>`;
-            if (reportMode === 'monthly') {
-                html += `<th>${h2}</th><th>${h1}</th><th>${h0}</th>`;
-            } else {
-                 html += `<th>${h1}</th><th>${h0}</th><th>Variação</th>`;
-            }
-            html += `</tr></thead><tbody>`;
-
-            rows.forEach(r => {
-                let lastCol = '';
-                if (reportMode === 'monthly') {
-                    lastCol = `<td>${r.p2}</td><td>${r.p1}</td><td>${r.p0}</td>`;
-                } else {
-                    let varia = '-';
-                    if (r.p1 > 0) {
-                        const diff = ((r.p0 - r.p1) / r.p1) * 100;
-                        varia = diff.toFixed(2) + '%';
-                    } else if (r.p0 > 0) varia = 'Novo';
-                    const color = varia.includes('-') ? 'text-red-400' : (varia === 'Novo' ? 'text-blue-400' : 'text-green-400');
-                    lastCol = `<td>${r.p1}</td><td>${r.p0}</td><td class="${color}">${varia}</td>`; // Keeping colored variation here as it's a diff
-                }
-                html += `<tr><td>${r.medium}</td>${lastCol}</tr>`;
-            });
-            html += `</tbody></table>`;
-            document.getElementById('renderAquisicao').innerHTML = html;
-        }
-
-        function generateValidados(startPeriod, mode) {
-             const weeksList = [];
-             let iterations = mode === 'weekly' ? 8 : 3; // 8 weeks or 3 months
-             
-             for (let i = 0; i < iterations; i++) {
-                 let wStart, wEnd, label;
-                 if (mode === 'weekly') {
-                     wStart = new Date(startPeriod); wStart.setDate(wStart.getDate() - (7 * i));
-                     wEnd = new Date(wStart); wEnd.setDate(wEnd.getDate() + 6);
-                 } else {
-                     wStart = new Date(startPeriod); wStart.setMonth(wStart.getMonth() - i);
-                     wEnd = new Date(wStart); wEnd.setMonth(wEnd.getMonth() + 1); wEnd.setDate(0);
-                 }
-                 wEnd.setHours(23, 59, 59, 999);
-                 weeksList.push({ start: wStart, end: wEnd });
-             }
-             weeksList.reverse();
-
-             let html = `<table id="tableValidados"><thead><tr><th>Período</th><th>Validados</th><th>%</th><th>Não Validados</th><th>%</th><th>Total</th></tr></thead><tbody>`;
-             
-             let rowsAdded = 0;
-             weeksList.forEach(w => {
-                 let validados = 0; let naoValidados = 0;
-                 rawUsuarios.forEach(u => {
-                    const d = parseDateBR(u['data_criacao_usuario (Data)']);
-                    if (d && d >= w.start && d <= w.end) {
-                        if (isUserValid(u)) validados++; else naoValidados++;
-                    }
-                 });
-                 const total = validados + naoValidados;
-                 if (total > 0) {
-                     const percVal = ((validados/total)*100).toFixed(2);
-                     const percNao = ((naoValidados/total)*100).toFixed(2);
-                     const fmt = d => d.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'});
-                     const label = mode === 'monthly' ? w.start.toLocaleString('pt-BR', {month:'long', year:'numeric'}) : `${fmt(w.start)} a ${fmt(w.end)}`;
-                     
-                     html += `<tr><td class="capitalize">${label}</td><td class="font-medium">${validados}</td><td>${percVal}%</td><td style="color: var(--text-secondary);">${naoValidados}</td><td>${percNao}%</td><td class="font-bold" style="color: var(--text-primary);">${total}</td></tr>`;
-                     rowsAdded++;
-                 }
-             });
-             if(rowsAdded === 0) html += `<tr><td colspan="6" class="text-center py-4" style="color: var(--text-secondary);">Nenhum dado encontrado.</td></tr>`;
-             html += `</tbody></table>`;
-             document.getElementById('renderValidados').innerHTML = html;
-        }
-
-        // Universal Pivot Generator (Handles both Weekly Daily Columns AND Monthly Comparison)
-        function generatePivots(start, end, keyColumn, targetDiv, tableId, label, periods) {
-            // Check mode
-            if (reportMode === 'weekly') {
-                // -- OLD LOGIC: Daily Columns --
-                const days = [];
-                let curr = new Date(start);
-                while (curr <= end) { days.push(new Date(curr)); curr.setDate(curr.getDate() + 1); }
-                const matrix = {}; 
-                const profissoesAlvo = ['Eletricista', 'Estudante', 'Eletrotécnico', 'Engenheiro Eletricista', 'Outro', 'Engenheiro Civil', 'Arquiteto'];
-                rawUsuarios.forEach(u => {
-                    const d = parseDateBR(u['data_criacao_usuario (Data)']);
-                    if (d && d >= start && d <= end && isUserValid(u)) {
-                        let key = u[keyColumn] || '(vazio)';
-                        if (keyColumn === 'profissao') {
-                            const match = profissoesAlvo.find(p => p.toLowerCase() === key.trim().toLowerCase());
-                            key = match ? match : 'Profissão customizada';
-                        }
-                        const dateKey = d.toLocaleDateString('pt-BR'); 
-                        if (!matrix[key]) matrix[key] = { total: 0 };
-                        if (!matrix[key][dateKey]) matrix[key][dateKey] = 0;
-                        matrix[key][dateKey]++;
-                        matrix[key].total++;
-                    }
-                });
-                // Rendering Daily
-                let sortedKeys = Object.keys(matrix).sort((a,b) => matrix[b].total - matrix[a].total);
-                if (keyColumn === 'profissao') { /* Keep sort logic */ }
-                
-                let html = `<table id="${tableId}"><thead><tr><th>${label}</th>`;
-                days.forEach(d => html += `<th>${d.toLocaleDateString('pt-BR').slice(0,5)}</th>`);
-                html += `<th>Total</th></tr></thead><tbody>`;
-                sortedKeys.forEach(k => {
-                    html += `<tr><td>${k}</td>`;
-                    days.forEach(d => html += `<td>${matrix[k][d.toLocaleDateString('pt-BR')] || 0}</td>`);
-                    html += `<td class="font-bold" style="color: var(--text-primary);">${matrix[k].total}</td></tr>`;
-                });
-                
-                html += `<tr style="background-color: var(--table-hover); font-weight: bold; color: var(--woca-orange);"><td>TOTAL DO DIA</td>`;
-                let weekTotal = 0;
-                days.forEach(d => {
-                    const dKey = d.toLocaleDateString('pt-BR');
-                    let daySum = 0;
-                    sortedKeys.forEach(k => {
-                        daySum += (matrix[k][dKey] || 0);
-                    });
-                    weekTotal += daySum;
-                    html += `<td>${daySum}</td>`;
-                });
-                html += `<td>${weekTotal}</td></tr>`;
-
-                html += `</tbody></table>`;
-                document.getElementById(targetDiv).innerHTML = html;
-
-            } else {
-                // -- NEW LOGIC: Monthly Comparison (3 Months) --
-                // periods = [Current, Prev1, Prev2]
-                const data = {}; // { Key: { p0:0, p1:0, p2:0 } }
-                const profissoesAlvo = ['Eletricista', 'Estudante', 'Eletrotécnico', 'Engenheiro Eletricista', 'Outro', 'Engenheiro Civil', 'Arquiteto'];
-
-                periods.forEach((p, idx) => {
-                    const pKey = 'p' + idx;
-                    rawUsuarios.forEach(u => {
-                        const d = parseDateBR(u['data_criacao_usuario (Data)']);
-                        if (d && d >= p.start && d <= p.end && isUserValid(u)) {
-                            let key = u[keyColumn] || '(vazio)';
-                            if (keyColumn === 'profissao') {
-                                const match = profissoesAlvo.find(v => v.toLowerCase() === key.trim().toLowerCase());
-                                key = match ? match : 'Profissão customizada';
-                            }
-                            if (!data[key]) data[key] = { p0: 0, p1: 0, p2: 0 };
-                            data[key][pKey]++;
-                        }
-                    });
-                });
-                
-                const rows = Object.keys(data).map(k => ({ key: k, ...data[k] })).sort((a,b) => b.p0 - a.p0);
-                
-                let html = `<table id="${tableId}"><thead><tr><th>${label}</th><th>${periods[2].label}</th><th>${periods[1].label}</th><th>${periods[0].label}</th></tr></thead><tbody>`;
-                rows.forEach(r => {
-                    html += `<tr><td>${r.key}</td><td>${r.p2}</td><td>${r.p1}</td><td class="font-bold" style="color: var(--text-primary);">${r.p0}</td></tr>`;
-                });
-                document.getElementById(targetDiv).innerHTML = html + `</tbody></table>`;
-            }
-        }
-
-        // Kept for Weekly view
-        function generateConversao(start, end) {
-            const transMap = {}; 
-            rawTransacoes.forEach(t => {
-                const email = t['username'];
-                const plano = t['Plano'] ? t['Plano'].toLowerCase() : '';
-                const ignore = ['trial', 'trial_form', 'gratuito', '-', ''];
-                if (!ignore.includes(plano)) {
-                    if (!transMap[email]) transMap[email] = [];
-                    transMap[email].push(t);
-                }
-            });
-            const seenConversions = new Set();
-            const conversions = [];
-            rawUsuarios.forEach(u => {
-                const dCreated = parseDateBR(u['data_criacao_usuario (Data)']);
-                if (dCreated && dCreated >= start && dCreated <= end) {
-                    if (!isUserValid(u)) return;
-                    const email = u['username'];
-                    const matchTrans = transMap[email];
-                    if (matchTrans && matchTrans.length > 0) {
-                        matchTrans.forEach(trans => {
-                            const dTrans = parseDateBR(trans['data_transacao (Data)']);
-                            if (dTrans && dTrans >= start && dTrans <= end) {
-                                const uniqueKey = `${email}|${trans['Plano']}|${trans['valor']}|${trans['data_transacao (Data)']}`;
-                                if (seenConversions.has(uniqueKey)) return; 
-                                seenConversions.add(uniqueKey);
-                                conversions.push({
-                                    email: email,
-                                    data_transacao: trans['data_transacao (Data)'],
-                                    plano: trans['Plano'],
-                                    source: u['utm_medium'], medium: u['utm_medium'], campaign: u['utm_campaign'],
-                                    data_cadastro: u['data_criacao_usuario (Data)'], valor: trans['valor']
-                                });
-                            }
-                        });
-                    }
-                }
-            });
-            let html = `<table id="tableConversao"><thead><tr><th>Email</th><th>Data Transação</th><th>Plano</th><th>Origem</th><th>Campanha</th><th>Cadastro</th><th>Valor</th></tr></thead><tbody>`;
-            if (conversions.length === 0) { html += `<tr><td colspan="7" class="text-center py-4" style="color: var(--text-secondary);">Sem dados.</td></tr>`; } 
-            else {
-                conversions.forEach(c => {
-                    html += `<tr><td class="text-xs" style="color: var(--text-secondary);">${c.email}</td><td>${c.data_transacao}</td><td>${c.plano}</td><td>${c.medium || '-'}</td><td>${c.campaign || '-'}</td><td>${c.data_cadastro}</td><td class="font-bold">R$ ${c.valor}</td></tr>`;
-                });
-            }
-            html += `</tbody></table>`;
-            html += `<div class="text-xs mt-2 text-right" style="color: var(--text-secondary);">Registros: ${conversions.length}</div>`;
-            document.getElementById('renderConversao').innerHTML = html;
-        }
-
-        function generateDistribuicaoVendas(start, end, periods) {
-            // Use similar logic to Pivots if Monthly, or simple count if Weekly.
-            // Actually "comparativo com dois meses anteriores" requested for Monthly.
-            
-            const transMap = {}; 
-            rawTransacoes.forEach(t => {
-                const email = t['username'];
-                const plano = t['Plano'] ? t['Plano'].toLowerCase() : '';
-                const ignore = ['trial', 'trial_form', 'gratuito', '-', ''];
-                if (!ignore.includes(plano)) {
-                    if (!transMap[email]) transMap[email] = [];
-                    transMap[email].push(t);
-                }
-            });
-
-            if (reportMode === 'weekly') {
-                // Original Logic
-                const seenConversions = new Set();
-                const counts = {};
-                rawUsuarios.forEach(u => {
-                    const dCreated = parseDateBR(u['data_criacao_usuario (Data)']);
-                    if (dCreated && dCreated >= start && dCreated <= end && isUserValid(u)) {
-                        const email = u['username'];
-                        const matchTrans = transMap[email];
-                        if (matchTrans) {
-                            matchTrans.forEach(trans => {
-                                const dTrans = parseDateBR(trans['data_transacao (Data)']);
-                                if (dTrans && dTrans >= start && dTrans <= end) {
-                                    const uniqueKey = `${email}|${trans['Plano']}|${trans['valor']}|${trans['data_transacao (Data)']}`;
-                                    if (!seenConversions.has(uniqueKey)) {
-                                        seenConversions.add(uniqueKey);
-                                        const soldPlan = trans['Plano'];
-                                        counts[soldPlan] = (counts[soldPlan] || 0) + 1;
-                                    }
-                                }
-                            });
-                        }
-                    }
-                });
-                // Render simple table
-                const plans = Object.keys(counts).sort((a, b) => {
-                    const getScore = (p) => {
-                        const low = p.toLowerCase();
-                        if (low.includes('advanced') || low.includes('pro')) return 2; 
-                        return 0; 
-                    };
-                    const scoreA = getScore(a);
-                    const scoreB = getScore(b);
-                    if (scoreA !== scoreB) return scoreB - scoreA;
-                    return a.localeCompare(b);
-                });
-
-                let html = `<table id="tableDistVendas"><thead><tr><th>Plano</th>`;
-                plans.forEach(p => {
-                    const isPaid = p.toLowerCase().includes('pro') || p.toLowerCase().includes('advanced');
-                    const classHeader = isPaid ? 'text-green-400' : 'text-gray-400';
-                    html += `<th class="${classHeader}">${p}</th>`;
-                });
-                html += `</tr></thead><tbody><tr><td>Quantidade</td>`;
-                plans.forEach(p => html += `<td>${counts[p]}</td>`);
-                html += `</tr></tbody></table>`;
-                document.getElementById('renderDistVendas').innerHTML = html;
-            } else {
-                // Monthly Comparison Logic (p0, p1, p2)
-                const data = {};
-                
-                periods.forEach((p, idx) => {
-                    const pKey = 'p' + idx;
-                    const seen = new Set();
-                    
-                    rawUsuarios.forEach(u => {
-                        const dCreated = parseDateBR(u['data_criacao_usuario (Data)']);
-                        if (dCreated && dCreated >= p.start && dCreated <= p.end && isUserValid(u)) {
-                            const email = u['username'];
-                            const matchTrans = transMap[email];
-                            if (matchTrans) {
-                                matchTrans.forEach(trans => {
-                                    const dTrans = parseDateBR(trans['data_transacao (Data)']);
-                                    if (dTrans && dTrans >= p.start && dTrans <= p.end) {
-                                        const uniqueKey = `${email}|${trans['Plano']}|${trans['data_transacao (Data)']}`;
-                                        if (!seen.has(uniqueKey)) {
-                                            seen.add(uniqueKey);
-                                            const soldPlan = trans['Plano'];
-                                            if(!data[soldPlan]) data[soldPlan] = { p0:0, p1:0, p2:0 };
-                                            data[soldPlan][pKey]++;
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                    });
-                });
-                
-                const rows = Object.keys(data).map(k => ({ key: k, ...data[k] })).sort((a,b) => b.p0 - a.p0);
-                let html = `<table id="tableDistVendas"><thead><tr><th>Plano</th><th>${periods[2].label}</th><th>${periods[1].label}</th><th>${periods[0].label}</th></tr></thead><tbody>`;
-                rows.forEach(r => html += `<tr><td>${r.key}</td><td>${r.p2}</td><td>${r.p1}</td><td class="font-bold" style="color: var(--text-primary);">${r.p0}</td></tr>`);
-                document.getElementById('renderDistVendas').innerHTML = html + `</tbody></table>`;
-            }
-        }
-
-        function generatePlanos(start, end, periods) {
-            if (reportMode === 'weekly') {
-                const counts = {};
-                rawUsuarios.forEach(u => {
-                    const d = parseDateBR(u['data_criacao_usuario (Data)']);
-                    if (d && d >= start && d <= end && isUserValid(u)) {
-                        let plano = u['current_plan_detail'] || 'Gratuito';
-                        if (plano === '-' || plano === '') plano = 'Gratuito';
-                        counts[plano] = (counts[plano] || 0) + 1;
-                    }
-                });
-                const plans = Object.keys(counts).sort((a, b) => {
-                    const getScore = (p) => {
-                        const low = p.toLowerCase();
-                        if (low.includes('advanced') || low.includes('pro')) return 2; 
-                        return 0; 
-                    };
-                    const scoreA = getScore(a);
-                    const scoreB = getScore(b);
-                    if (scoreA !== scoreB) return scoreB - scoreA;
-                    return a.localeCompare(b);
-                });
-                let html = `<table id="tablePlanos"><thead><tr><th>Plano</th>`;
-                plans.forEach(p => {
-                    const isPaid = p.toLowerCase().includes('pro') || p.toLowerCase().includes('advanced');
-                    const classHeader = isPaid ? 'text-green-400' : 'text-gray-400';
-                    html += `<th class="${classHeader}">${p}</th>`;
-                });
-                html += `</tr></thead><tbody><tr><td>Quantidade</td>`;
-                plans.forEach(p => {
-                    html += `<td>${counts[p]}</td>`;
-                });
-                html += `</tr></tbody></table>`;
-                document.getElementById('renderPlanos').innerHTML = html;
-            } else {
-                // Monthly Comparison
-                const data = {};
-                periods.forEach((p, idx) => {
-                    const pKey = 'p' + idx;
-                    rawUsuarios.forEach(u => {
-                        const d = parseDateBR(u['data_criacao_usuario (Data)']);
-                        if (d && d >= p.start && d <= p.end && isUserValid(u)) {
-                            let plano = u['current_plan_detail'] || 'Gratuito';
-                            if (plano === '-' || plano === '') plano = 'Gratuito';
-                            if(!data[plano]) data[plano] = { p0:0, p1:0, p2:0 };
-                            data[plano][pKey]++;
-                        }
-                    });
-                });
-                const rows = Object.keys(data).map(k => ({ key: k, ...data[k] })).sort((a,b) => b.p0 - a.p0);
-                let html = `<table id="tablePlanos"><thead><tr><th>Plano</th><th>${periods[2].label}</th><th>${periods[1].label}</th><th>${periods[0].label}</th></tr></thead><tbody>`;
-                rows.forEach(r => html += `<tr><td>${r.key}</td><td>${r.p2}</td><td>${r.p1}</td><td class="font-bold" style="color: var(--text-primary);">${r.p0}</td></tr>`);
-                document.getElementById('renderPlanos').innerHTML = html + `</tbody></table>`;
-            }
-        }
-
-        function generateHistoricoMensal(currentWeekStart) {
-            // If Monthly mode: Show comparison of 3 months
-            // If Weekly mode: Show weeks of current month
-            
-            if (reportMode === 'monthly') {
-                // Reuse logic from other comparisons but calculate conversion rate
-                const periods = getComparisonPeriods(currentWeekStart, 'monthly');
-                const transMap = {}; 
-                rawTransacoes.forEach(t => {
-                    const email = t['username'];
-                    const plano = t['Plano'] ? t['Plano'].toLowerCase() : '';
-                    const ignore = ['trial', 'trial_form', 'gratuito', '-', ''];
-                    if (!ignore.includes(plano)) {
-                        if (!transMap[email]) transMap[email] = [];
-                        transMap[email].push(t);
-                    }
-                });
-                
-                let htmlHist = `<table id="tableHistorico"><thead><tr><th>Mês</th><th>Conversão (Até 7 Dias)</th><th>Conversão (Até 30 Dias)</th><th>Conversão (Após 30 Dias)</th></tr></thead><tbody>`;
-                
-                // --- VELOCITY (Cohort) 30 Days Logic ---
-                let htmlVel = `<table id="tableVelocidade"><thead><tr><th>Mês</th>`;
-                for(let i=0; i<=30; i++) {
-                    // Show only specific days to save space? No, request implies full range. 
-                    // Maybe group? "0", "1", "2"... "30".
-                    // CSS will handle scroll.
-                    htmlVel += `<th class="cohort-header text-center">${i}</th>`;
-                }
-                htmlVel += `</tr></thead><tbody>`;
-
-                periods.forEach(p => {
-                    const users = rawUsuarios.filter(u => {
-                        const d = parseDateBR(u['data_criacao_usuario (Data)']);
-                        return d && d >= p.start && d <= p.end && isUserValid(u);
-                    });
-                    const totalUsers = users.length;
-                    let conv7 = 0;
-                    let conv30 = 0;
-                    let convAfter30 = 0;
-                    const dailyCounts = new Array(31).fill(0);
-
-                    users.forEach(u => {
-                        const dCreated = parseDateBR(u['data_criacao_usuario (Data)']);
-                        const email = u['username'];
-                        const txs = transMap[email];
-                        if(txs) {
-                            // Sort txs by date asc
-                            txs.sort((a,b) => parseDateBR(a['data_transacao (Data)']) - parseDateBR(b['data_transacao (Data)']));
-                            // Get first tx
-                            const firstTx = txs[0];
-                            const dFirstTx = parseDateBR(firstTx['data_transacao (Data)']);
-
-                            // Check for conversions relative to user creation
-                            const diffTime = dFirstTx - dCreated;
-                            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                            
-                            if(diffDays <= 7) {
-                                conv7++;
-                                conv30++;
-                            } else if(diffDays <= 30) {
-                                conv30++;
-                            } else {
-                                convAfter30++;
-                            }
-
-                            // Velocity: Find EARLIEST transaction ever
-                            if (diffDays >= 0 && diffDays <= 30) dailyCounts[diffDays]++;
-                        }
-                    });
-                    
-                    const rate7 = totalUsers ? ((conv7/totalUsers)*100).toFixed(2) : "0.00";
-                    const rate30 = totalUsers ? ((conv30/totalUsers)*100).toFixed(2) : "0.00";
-                    const rateAfter30 = totalUsers ? ((convAfter30/totalUsers)*100).toFixed(2) : "0.00";
-                    
-                    htmlHist += `<tr><td>${p.label}</td><td class="font-bold">${rate7}%</td><td class="font-bold">${rate30}%</td><td class="font-bold">${rateAfter30}%</td></tr>`;
-                    
-                    htmlVel += `<tr><td style="white-space: nowrap; font-size: 0.75rem;">${p.label}</td>`;
-                    for(let i=0; i<=30; i++) {
-                        const val = dailyCounts[i];
-                        // Soft single color style requested
-                        // If value > 0, use soft orange bg, text color from theme.
-                        let style = '';
-                        if (val > 0) {
-                            style = `background-color: rgba(255, 136, 0, 0.15); font-weight: bold; color: var(--text-primary);`;
-                        } else {
-                             style = `color: var(--text-faint);`;
-                        }
-                        htmlVel += `<td class="cohort-cell" style="${style}">${val > 0 ? val : '-'}</td>`;
-                    }
-                    htmlVel += `</tr>`;
-                });
-                htmlHist += `</tbody></table>`;
-                htmlVel += `</tbody></table>`;
-                
-                document.getElementById('renderHistorico').innerHTML = htmlHist;
-                document.getElementById('renderVelocidade').innerHTML = htmlVel;
-
-            } else {
-                // WEEKLY LOGIC (Original)
-                const month = currentWeekStart.getMonth(); 
-                const year = currentWeekStart.getFullYear();
-                let iterator = new Date(year, month, 1);
-                while (iterator.getDay() !== 0) { iterator.setDate(iterator.getDate() + 1); }
-                
-                const weeksList = [];
-                const currentWeekEnd = new Date(currentWeekStart);
-                currentWeekEnd.setDate(currentWeekEnd.getDate() + 6);
-                currentWeekEnd.setHours(23, 59, 59, 999);
-
-                let safety = 0;
-                while (iterator <= currentWeekEnd && safety < 10) {
-                    const wStart = new Date(iterator);
-                    const wEnd = new Date(iterator); wEnd.setDate(wEnd.getDate() + 6); wEnd.setHours(23, 59, 59, 999);
-                    weeksList.push({ start: wStart, end: wEnd });
-                    iterator.setDate(iterator.getDate() + 7);
-                    safety++;
-                }
-
-                let htmlHist = `<table id="tableHistorico"><thead><tr><th>Semana</th><th title="Conversão dentro da própria semana de cadastro">Até 7 Dias</th><th title="Conversão acumulada até 30 dias">Até 30 Dias</th><th title="Conversão após 30 dias">Após 30 Dias</th></tr></thead><tbody>`;
-                
-                let htmlVel = `<table id="tableVelocidade"><thead><tr><th>Semana</th>`;
-                for(let i=0; i<=15; i++) htmlVel += `<th class="cohort-header text-center">${i}</th>`;
-                htmlVel += `</tr></thead><tbody>`;
-
-                const transMap = {}; 
-                rawTransacoes.forEach(t => {
-                    const email = t['username'];
-                    const plano = t['Plano'] ? t['Plano'].toLowerCase() : '';
-                    const ignore = ['trial', 'trial_form', 'gratuito', '-', ''];
-                    if (!ignore.includes(plano)) { if (!transMap[email]) transMap[email] = []; transMap[email].push(t); }
-                });
-
-                weeksList.forEach(w => {
-                    const users = rawUsuarios.filter(u => {
-                        const d = parseDateBR(u['data_criacao_usuario (Data)']);
-                        return d && d >= w.start && d <= w.end && isUserValid(u);
-                    });
-                    const totalUsers = users.length;
-                    let conv7 = 0; let conv30 = 0; let convAfter30 = 0;
-                    const dailyCounts = new Array(16).fill(0);
-
-                    users.forEach(u => {
-                        const dCreated = parseDateBR(u['data_criacao_usuario (Data)']);
-                        const email = u['username'];
-                        const txs = transMap[email];
-                        if (txs) {
-                            // Sort txs by date asc
-                            txs.sort((a,b) => parseDateBR(a['data_transacao (Data)']) - parseDateBR(b['data_transacao (Data)']));
-                            // Get first tx
-                            const firstTx = txs[0];
-                            const dFirstTx = parseDateBR(firstTx['data_transacao (Data)']);
-
-                            const diffTime = dFirstTx - dCreated;
-                            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-                            if(diffDays <= 7) {
-                                conv7++;
-                                conv30++;
-                            } else if(diffDays <= 30) {
-                                conv30++;
-                            } else {
-                                convAfter30++;
-                            }
-                            
-                            if (diffDays >= 0 && diffDays <= 15) dailyCounts[diffDays]++;
-                        }
-                    });
-
-                    const rate7 = totalUsers ? ((conv7 / totalUsers) * 100).toFixed(2) : "0.00";
-                    const rate30 = totalUsers ? ((conv30 / totalUsers) * 100).toFixed(2) : "0.00";
-                    const rateAfter30 = totalUsers ? ((convAfter30 / totalUsers) * 100).toFixed(2) : "0.00";
-                    const fmt = d => d.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'});
-                    const label = `${fmt(w.start)} a ${fmt(w.end)}`;
-
-                    htmlHist += `<tr><td>${label}</td><td class="font-bold">${rate7}%</td><td class="font-bold">${rate30}%</td><td class="font-bold">${rateAfter30}%</td></tr>`;
-
-                    htmlVel += `<tr><td style="white-space: nowrap; font-size: 0.75rem;">${label}</td>`;
-                    for(let i=0; i<=15; i++) {
-                        const val = dailyCounts[i];
-                        // Using the SOFT style requested for weekly too
-                        let style = '';
-                        if (val > 0) {
-                            style = `background-color: rgba(255, 136, 0, 0.15); font-weight: bold; color: var(--text-primary);`;
-                        } else {
-                             style = `color: var(--text-faint);`;
-                        }
-                        htmlVel += `<td class="cohort-cell" style="${style}">${val > 0 ? val : '-'}</td>`;
-                    }
-                    htmlVel += `</tr>`;
-                });
-                document.getElementById('renderHistorico').innerHTML = htmlHist + `</tbody></table>`;
-                document.getElementById('renderVelocidade').innerHTML = htmlVel + `</tbody></table>`;
-            }
-        }
-
-        function generateEmailTable(start, end) {
-            const emailsInWeek = rawEmails.filter(e => {
-                const d = parseDateBrevo(e['Sending date']);
-                return d && d >= start && d <= end;
-            });
-            emailsInWeek.sort((a,b) => parseDateBrevo(a['Sending date']) - parseDateBrevo(b['Sending date']));
-            let html = `<table id="tableEmails"><thead><tr><th>Data</th><th>Nome da Campanha</th><th>Assunto</th><th>Enviados</th><th>Entregues</th><th>Taxa de Abertura</th><th>CTOR</th><th>Descadastrados</th></tr></thead><tbody>`;
-            if (emailsInWeek.length === 0) {
-                html += `<tr><td colspan="8" class="text-center py-4" style="color: var(--text-secondary);">Nenhuma campanha encontrada neste período.</td></tr>`;
-            } else {
-                emailsInWeek.forEach(e => {
-                    const d = parseDateBrevo(e['Sending date']);
-                    const fmtDate = d.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'});
-                    const fmtNum = (val) => {
-                        const n = parseInt(val);
-                        return isNaN(n) ? val : n.toLocaleString('pt-BR');
-                    };
-                    const fmtMetric = (rate, count, rateColorClass = "") => {
-                        return `<span class="${rateColorClass}">${rate}</span> <span class="text-xs" style="color: var(--text-secondary);">(${fmtNum(count)})</span>`;
-                    };
-                    const subject = e['Subject'] ? e['Subject'] : '<span class="accent-text" style="font-style: italic;">[Teste A/B]</span>';
-                    html += `<tr><td>${fmtDate}</td><td class="text-xs">${e['Campaign Name']}</td><td class="text-xs" style="color: var(--text-secondary); italic">${subject}</td><td>${fmtNum(e['Sent'])}</td><td>${fmtMetric(e['Delivered rate'], e['Delivered'])}</td><td>${fmtMetric(e['Trackable open rate'], e['Opens'], 'font-bold')}</td><td>${fmtMetric(e['Click-to-Open rate'], e['Clicked'], 'font-bold')}</td><td>${fmtMetric(e['Unsubscription rate'], e['Unsubscribed'])}</td></tr>`;
-                });
-            }
-            html += `</tbody></table>`;
-            document.getElementById('renderEmails').innerHTML = html;
-        }
-        
-        // NEW / RENAMED FUNCTION: Generates Trend (Weekly or Monthly)
-        function generateEmailTrend(currentWeekStart, mode) {
-             // Determine iterations: 8 weeks or 3 months
-             const periods = [];
-             const iterations = mode === 'weekly' ? 8 : 3;
-             
-             for (let i = 0; i < iterations; i++) {
-                 let pStart, pEnd;
-                 if (mode === 'weekly') {
-                     pStart = new Date(currentWeekStart);
-                     pStart.setDate(pStart.getDate() - (7 * i));
-                     pEnd = new Date(pStart); pEnd.setDate(pEnd.getDate() + 6);
-                 } else {
-                     // Monthly logic
-                     pStart = new Date(currentWeekStart);
-                     pStart.setMonth(pStart.getMonth() - i);
-                     pEnd = new Date(pStart); pEnd.setMonth(pEnd.getMonth() + 1); pEnd.setDate(0);
-                 }
-                 pEnd.setHours(23, 59, 59, 999);
-                 periods.push({ start: pStart, end: pEnd });
-             }
-             periods.reverse();
-
-            let html = `<table id="tableEmailSemanal"><thead>
-                <tr>
-                    <th>Período</th>
-                    <th>Enviados</th>
-                    <th>Entregues</th>
-                    <th>Taxa de Abertura</th>
-                    <th>CTOR</th>
-                    <th>Descadastrados</th>
-                </tr></thead><tbody>`;
-            
-            periods.forEach(p => {
-                // Filter emails in this period
-                const emailsInPeriod = rawEmails.filter(e => {
-                    const d = parseDateBrevo(e['Sending date']);
-                    return d && d >= p.start && d <= p.end;
-                });
-                
-                // Aggregate totals
-                let totalSent = 0;
-                let totalDelivered = 0;
-                let totalOpens = 0;
-                let totalClicks = 0;
-                let totalUnsub = 0;
-
-                emailsInPeriod.forEach(e => {
-                    totalSent += parseInt(e['Sent']) || 0;
-                    totalDelivered += parseInt(e['Delivered']) || 0;
-                    totalOpens += parseInt(e['Opens']) || 0;
-                    totalClicks += parseInt(e['Clicked']) || 0;
-                    totalUnsub += parseInt(e['Unsubscribed']) || 0;
-                });
-
-                // Calculate weighted rates
-                const delRate = totalSent ? ((totalDelivered / totalSent) * 100).toFixed(2) + '%' : "0.00%";
-                const openRate = totalDelivered ? ((totalOpens / totalDelivered) * 100).toFixed(2) + '%' : "0.00%";
-                const ctor = totalOpens ? ((totalClicks / totalOpens) * 100).toFixed(2) + '%' : "0.00%";
-                const unsubRate = totalDelivered ? ((totalUnsub / totalDelivered) * 100).toFixed(2) + '%' : "0.00%";
-
-                const fmtNum = (n) => n.toLocaleString('pt-BR');
-                const fmtMetric = (rate, count, rateColorClass = "") => {
-                    return `<span class="${rateColorClass}">${rate}</span> <span class="text-xs" style="color: var(--text-secondary);">(${fmtNum(count)})</span>`;
-                };
-
-                let label;
-                if (mode === 'monthly') {
-                    label = p.start.toLocaleString('pt-BR', {month: 'long', year: 'numeric'});
-                } else {
-                    const fmtDate = d => d.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'});
-                    label = `${fmtDate(p.start)} a ${fmtDate(p.end)}`;
-                }
-                
-                // Show row even if 0? Usually trend tables show all periods.
-                if (mode === 'monthly' || totalSent > 0) {
-                     html += `<tr>
-                        <td class="capitalize">${label}</td>
-                        <td>${fmtNum(totalSent)}</td>
-                        <td>${fmtMetric(delRate, totalDelivered)}</td>
-                        <td>${fmtMetric(openRate, totalOpens, 'font-bold')}</td>
-                        <td>${fmtMetric(ctor, totalClicks, 'font-bold')}</td>
-                        <td>${fmtMetric(unsubRate, totalUnsub)}</td>
-                    </tr>`;
-                }
-            });
-            
-            html += `</tbody></table>`;
-            document.getElementById('renderEmailSemanal').innerHTML = html;
+            document.getElementById('renderScoreGeral').innerHTML = html + `</tbody></table>`;
         }
 
         function copyTable(tableId) {
-            const table = document.getElementById(tableId);
-            if (!table) return;
-            const range = document.createRange();
-            range.selectNode(table);
-            window.getSelection().removeAllRanges(); 
-            window.getSelection().addRange(range); 
-            document.execCommand('copy'); 
-            window.getSelection().removeAllRanges();
+            const table = document.getElementById(tableId); if (!table) return;
+            const range = document.createRange(); range.selectNode(table);
+            window.getSelection().removeAllRanges(); window.getSelection().addRange(range); 
+            document.execCommand('copy'); window.getSelection().removeAllRanges();
             alert('Tabela copiada! Agora cole no Notion (Ctrl+V).');
         }
 
         function downloadImage(tableId, filename) {
-            const tableElement = document.getElementById(tableId);
-            if (!tableElement) return;
+            const tableElement = document.getElementById(tableId); if (!tableElement) return;
             const isLight = document.body.classList.contains('light-mode');
             const bg = isLight ? '#ffffff' : '#0a0a0a'; 
+            html2canvas(tableElement, { backgroundColor: bg, scale: 2 }).then(canvas => {
+                const link = document.createElement('a'); link.download = filename; link.href = canvas.toDataURL("image/png"); link.click();
+            }).catch(err => { console.error("Erro ao gerar imagem:", err); alert("Erro ao gerar imagem. Tente novamente."); });
+        }
+        
+        // --- SCORING DASHBOARD LOGIC ---
+        function calcScoringKPIs(periods) {
+            const getStats = (p) => {
+                const scores = rawScoring.filter(r => { const d = parseDateBR(r['DATA_CRIACAO_CONTA']); return d && d >= p.start && d <= p.end; }).map(r => parseFloat(r['SCORE'])||0);
+                return calculateMeanMedian(scores);
+            };
+            const s0 = getStats(periods[0]);
+            const s1 = getStats(periods[1]);
 
-            html2canvas(tableElement, {
-                backgroundColor: bg, 
-                scale: 2 
-            }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = filename;
-                link.href = canvas.toDataURL("image/png");
-                link.click();
-            }).catch(err => {
-                console.error("Erro ao gerar imagem:", err);
-                alert("Erro ao gerar imagem. Tente novamente.");
+            const trend = (curr, prev) => {
+                const diff = curr - prev;
+                const icon = diff >= 0 ? '<i data-lucide="arrow-up" class="w-3 h-3"></i>' : '<i data-lucide="arrow-down" class="w-3 h-3"></i>';
+                const color = diff >= 0 ? 'trend-up' : 'trend-down';
+                return `<span class="${color} flex items-center gap-1">${icon} ${Math.abs(diff).toFixed(2)}</span>`;
+            };
+
+            document.getElementById('dashScoreMean').innerText = s0.mean;
+            document.getElementById('dashScoreTrendMean').innerHTML = trend(s0.mean, s1.mean) + ' vs mês anterior';
+            
+            document.getElementById('dashScoreMedian').innerText = s0.median;
+            document.getElementById('dashScoreTrendMedian').innerHTML = trend(s0.median, s1.median) + ' vs mês anterior';
+        }
+
+        function generateScoringRankingBlock(periods, keyColumn, title, iconClass, iconName) {
+            // Data Aggregation
+            const data = {}; 
+            const targets = ['Eletricista','Estudante','Eletrotécnico','Engenheiro Eletricista','Outro','Engenheiro Civil','Arquiteto'];
+
+            periods.forEach((p, idx) => {
+                const pKey = idx; 
+                const filteredRows = rawScoring.filter(row => { const d = parseDateBR(row['DATA_CRIACAO_CONTA']); return d && d >= p.start && d <= p.end; });
+                const groups = {};
+                filteredRows.forEach(row => {
+                    let key;
+                    if (keyColumn === 'ORIGEM_MIDIA') {
+                        const s = row['PRIMEIRA_UTM_SOURCE'] || '-'; const m = row['PRIMEIRA_UTM_MEDIUM'] || '-'; key = `${s === '' ? '-' : s} / ${m === '' ? '-' : m}`;
+                    } else {
+                        key = row[keyColumn] || '(vazio)';
+                        if (keyColumn === 'PROFISSAO') {
+                            const cleanK = key.trim();
+                            const match = targets.find(t=>t.toLowerCase() === cleanK.toLowerCase());
+                            key = match ? match : 'Profissão customizada';
+                        }
+                        if (key === '') key = '(vazio)';
+                    }
+                    if(!groups[key]) groups[key] = [];
+                    groups[key].push(parseFloat(row['SCORE'])||0);
+                });
+                Object.keys(groups).forEach(k => {
+                    if(!data[k]) data[k] = { 0: {mean:0}, 1: {mean:0}, 2: {mean:0} };
+                    data[k][pKey] = calculateMeanMedian(groups[k]);
+                });
             });
+
+            const rows = Object.keys(data).map(k => ({ key: k, ...data[k] })).sort((a, b) => parseFloat(b[0].mean) - parseFloat(a[0].mean)).slice(0, 10);
+            
+            // Trend Logic: Avg over 3 months
+            const trendRows = Object.keys(data).map(k => {
+                const item = data[k];
+                if (item[0].mean == 0) return null; 
+                const avg = (parseFloat(item[0].mean) + parseFloat(item[1].mean) + parseFloat(item[2].mean)) / 3;
+                return { key: k, avgScore: avg, current: item[0].mean };
+            }).filter(x => x !== null).sort((a,b) => b.avgScore - a.avgScore);
+
+            const best3 = trendRows.slice(0, 3);
+            // For Worst, sort Ascending
+            const worst3 = [...trendRows].sort((a,b) => a.avgScore - b.avgScore).slice(0, 3);
+
+            let htmlHeader = `
+            <div class="flex items-center gap-2 mb-4 mt-2">
+                <div class="p-2 rounded-full bg-opacity-10" style="background-color: var(--input-bg);">
+                    <i data-lucide="${iconName}" class="w-5 h-5 ${iconClass}"></i>
+                </div>
+                <h4 class="text-lg font-bold" style="color: var(--text-primary);">${title}</h4>
+            </div>`;
+
+            let htmlCards = `<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">`;
+            
+            // Best Block
+            htmlCards += `<div class="flex flex-col gap-3">
+                <div class="text-xs uppercase tracking-wider font-bold mb-1" style="color: var(--chart-green);">Melhores Médias (3 Meses)</div>`;
+            best3.forEach((b, i) => {
+                htmlCards += `
+                <div class="rank-card glass-panel p-4 flex justify-between items-center" style="border-left-color: var(--chart-green);">
+                    <div class="flex-1 min-w-0 pr-4">
+                        <div class="text-[10px] uppercase tracking-wide opacity-60 mb-1">#${i+1}</div>
+                        <div class="font-bold truncate text-sm" style="color: var(--text-primary);" title="${b.key}">${b.key}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-lg font-bold" style="color: var(--chart-green);">${b.avgScore.toFixed(2)}</div>
+                        <div class="text-[10px] opacity-50">Média (3 Meses)</div>
+                    </div>
+                </div>`;
+            });
+            htmlCards += `</div>`;
+
+            // Worst Block
+            htmlCards += `<div class="flex flex-col gap-3">
+                <div class="text-xs uppercase tracking-wider font-bold mb-1" style="color: var(--chart-red);">Piores Médias (3 Meses)</div>`;
+            worst3.forEach((w, i) => {
+                htmlCards += `
+                <div class="rank-card glass-panel p-4 flex justify-between items-center" style="border-left-color: var(--chart-red);">
+                    <div class="flex-1 min-w-0 pr-4">
+                        <div class="text-[10px] uppercase tracking-wide opacity-60 mb-1">#${i+1}</div>
+                        <div class="font-bold truncate text-sm" style="color: var(--text-primary);" title="${w.key}">${w.key}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-lg font-bold" style="color: var(--chart-red);">${w.avgScore.toFixed(2)}</div>
+                        <div class="text-[10px] opacity-50">Média (3 Meses)</div>
+                    </div>
+                </div>`;
+            });
+            htmlCards += `</div></div>`;
+
+            let htmlTable = `
+            <div class="glass-panel p-0 flex flex-col w-full mb-12">
+                <div class="p-4 border-b border-[var(--table-border)] bg-[var(--th-bg)]">
+                    <h5 class="font-medium text-xs uppercase tracking-wider opacity-70">Ranking do Mês Vigente (Top 10)</h5>
+                </div>
+                <div class="p-6 overflow-x-auto"><table class="w-full"><thead><tr><th>Item</th><th>Média</th><th>Mediana</th></tr></thead><tbody>`;
+            
+            rows.forEach(r => {
+                if (r[0].mean > 0) {
+                    htmlTable += `<tr><td class="font-bold" style="color: var(--text-primary);">${r.key}</td><td class="font-bold">${r[0].mean}</td><td style="color: var(--woca-orange);">${r[0].median}</td></tr>`;
+                }
+            });
+            htmlTable += `</tbody></table></div></div>`;
+
+            return `<div class="flex flex-col">${htmlHeader}${htmlCards}${htmlTable}</div>`;
         }
     </script>
 </body>
